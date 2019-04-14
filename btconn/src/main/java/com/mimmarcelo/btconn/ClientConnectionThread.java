@@ -20,7 +20,7 @@ final class ClientConnectionThread extends ConnectionThread {
     }
 
     /**
-     * Establish a connection as a Bluetooth client
+     * Establishes a connection as a Bluetooth client
      * @return BluetoothSocket with connection established
      */
     @Override

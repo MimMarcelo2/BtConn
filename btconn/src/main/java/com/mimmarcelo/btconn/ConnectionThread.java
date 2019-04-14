@@ -61,7 +61,7 @@ abstract class ConnectionThread extends Thread {
     }
 
     /**
-     * Loop to read the Bluetooth input
+     * Loop to read the Bluetooth input (messages received)
      */
     private void connectionLoop(){
         try {
@@ -69,8 +69,14 @@ abstract class ConnectionThread extends Thread {
             output = bluetoothSocket.getOutputStream();
 
             Intent intent = new Intent();
+            intent.putExtra(BluetoothListener.EXTRA_STATUS, BluetoothListener.STATUS_DEVICE_CONNECTED);
+            bluetoothListener.messageReceived(intent);//Registers "Connected" message
+
+            intent = new Intent();//Clean intent
+
             byte[] buffer = new byte[1024];
             int bytes;
+            //Reads and register all messages received
             while (running) {
                 bytes = input.read(buffer);
                 intent.putExtra(BluetoothListener.EXTRA_MESSAGE, sanitizeString(Arrays.copyOfRange(buffer, 0, bytes)));
@@ -82,9 +88,9 @@ abstract class ConnectionThread extends Thread {
     }
 
     /**
-     * Convert and clear the messages received by Bluetooth
+     * Converts and cleans the messages received by Bluetooth
      * @param input Bytes received
-     * @return
+     * @return the message as a String
      */
     private String sanitizeString(byte[] input) {
         String m = new String(input);
@@ -93,13 +99,18 @@ abstract class ConnectionThread extends Thread {
     }
 
     /**
-     * Prepare and send message by Bluetooth
-     * @param intent
+     * Prepares and sends the message by Bluetooth
+     * @param intent data with the message
      */
     protected void sendMessage(Intent intent){
         if(intent.hasExtra(BluetoothListener.EXTRA_MESSAGE)){
             String message = intent.getStringExtra(BluetoothListener.EXTRA_MESSAGE);
 
+            /*
+            * "\n" is important for adapter send the message
+            * without it the message is added to the older one
+            * and it is send only the thread is finished
+             */
             if (message.endsWith("\n")) message += "\n";
 
             byte[] buffer = message.getBytes();

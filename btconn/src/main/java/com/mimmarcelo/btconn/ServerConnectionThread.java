@@ -16,7 +16,7 @@ class ServerConnectionThread extends ConnectionThread {
     }
 
     /**
-     * Establish a connection as a Bluuetooth server
+     * Establishes a connection as a Bluuetooth server
      * @return BluetoothSocket with connection established
      */
     @Override

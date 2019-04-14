@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btn = findViewById(R.id.btnSendMessage);
         btn.setOnClickListener(this);
 
-        if(bluetoothManager.isActived()){
+        if(bluetoothManager.getBluetoothAdapter().isEnabled()){
             setStatus("Bluetooth on");
         }
         else{
@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.btnTurnOn:
-                bluetoothManager.turnOn(TURN_ON);
+                bluetoothManager.turnOn();
                 setStatus("Asking for permission...");
                 break;
             case R.id.btnTurnOff:
@@ -75,35 +75,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.btnOpenService:
                 setStatus("Asking to open service");
-                bluetoothManager.askToOpenService(TURN_DISCOVERABLE, 20);
+                bluetoothManager.askToOpenService(20);
                 break;
             case R.id.btnSearchService:
                 setStatus("Searching for service");
+                bluetoothManager.searchForOpenService();
                 break;
             case R.id.btnShowDeviceName:
-                setStatus("Device name: " + bluetoothManager.getDeviceName());
+                setStatus("Device name: " + bluetoothManager.getBluetoothAdapter().getName());
                 break;
         }
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        switch (requestCode){
-            case TURN_ON:
-                if(requestCode == RESULT_CANCELED){//It is important when the user does not enable
-                    setStatus("Bluetooth off");
-                }
-                break;
-            case TURN_DISCOVERABLE:
-                if(resultCode == RESULT_CANCELED){//It is important when the user does not enable
-                    if(bluetoothManager.isActived()){
-                        setStatus("Bluetooth on");
-                    }
-                    else{
-                        setStatus("Bluetooth off");
-                    }
-                }
-        }
+//        switch (requestCode){
+//            case TURN_ON:
+//                if(requestCode == RESULT_CANCELED){//It is important when the user does not enable
+//                    setStatus("Bluetooth off");
+//                }
+//                break;
+//            case TURN_DISCOVERABLE:
+//                if(resultCode == RESULT_CANCELED){//It is important when the user does not enable
+//                    if(bluetoothManager.getBluetoothAdapter().isEnabled()){
+//                        setStatus("Bluetooth on");
+//                    }
+//                    else{
+//                        setStatus("Bluetooth off");
+//                    }
+//                }
+//        }
     }
 
     @Override
@@ -125,6 +126,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 case BluetoothListener.STATUS_DEVICE_CONNECTED:
                     BluetoothDevice device = bluetoothManager.getDevice();
                     setStatus("Device: " + device.getName() + " connected");
+                    break;
+                case BluetoothListener.STATUS_PERMISSION_REQUIRED:
+                    setStatus("Fine location permission required");
+                    break;
+                case BluetoothListener.STATUS_SEARCHING_FOR_SERVICES:
+                    setStatus("Searching for services");
                     break;
             }
         }
