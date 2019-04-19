@@ -7,6 +7,7 @@ package com.mimmarcelo.btconn;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
+import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,6 +46,7 @@ abstract class ConnectionThread extends Thread {
         if (bluetoothSocket != null){
             running = true;
             device = bluetoothSocket.getRemoteDevice();
+            Log.i("ConnectionThread", "device setted: " + device.getName());
 
             connectionLoop();
             cancel();
@@ -52,6 +54,7 @@ abstract class ConnectionThread extends Thread {
     }
 
     protected BluetoothDevice getDevice(){
+        Log.i("ConnectionThread", "device required");
         if(running){
             return device;
         }
@@ -129,7 +132,7 @@ abstract class ConnectionThread extends Thread {
     /**
      * Finish all class objects
      */
-    private void cancel(){
+    protected void cancel(){
         if (input != null) {
             try {
                 input.close();

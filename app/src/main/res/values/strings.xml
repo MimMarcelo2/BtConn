@@ -5,4 +5,5 @@
     <string name="show_mac">SHOW MAC</string>
     <string name="show_device_name">SHOW DEVICE NAME</string>
     <string name="send_message">SEND MESSAGE</string>
+    <string name="get_conected">GET CONECTED</string>
 </resources>

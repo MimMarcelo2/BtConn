@@ -97,7 +97,6 @@ final class SelectServiceDialog implements BluetoothListener {
      * Shows the AlertDialog
      */
     protected void show() {
-        selectedService = -1;
         bluetoothDevices.clear();
         BluetoothAdapter.getDefaultAdapter().startDiscovery();
         alertDialog.show();

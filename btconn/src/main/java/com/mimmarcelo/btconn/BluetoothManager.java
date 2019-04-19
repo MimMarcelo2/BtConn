@@ -64,16 +64,17 @@ public final class BluetoothManager implements BluetoothListener{
 
     /**
      * Show popup asking permission to enable Bluetooth
+     * @param requestCode Number to identify the answer in onActivityResult method
      */
-    public void turnOn() {
-        Intent intent;
+    public void turnOn(int requestCode) {
         if(bluetoothAdapter.isEnabled()){
             sendStatusMessage(BluetoothListener.STATUS_BLUETOOTH_TURNED_ON);
         }
         else {
-            intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            this.activity.startActivity(intent);
+            Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            this.activity.startActivityForResult(intent, requestCode);
             //Message comes from BluetoothBroadcast class
+            //But, if the user do not enable, the answer is only received in onActivityResult method
         }
     }
 
@@ -82,6 +83,7 @@ public final class BluetoothManager implements BluetoothListener{
      */
     public void turnOff(){
         if(bluetoothAdapter.isEnabled()) {
+            stopThead();
             bluetoothAdapter.disable();
             //Message comes from BluetoothBroadcast class
         }
@@ -92,20 +94,24 @@ public final class BluetoothManager implements BluetoothListener{
 
     /**
      * Show popup asking permission to enable discovering
+     * @param requestCode Number to identify the answer in onActivityResult method
      * @param seconds Time for discovering
      */
-    public void askToOpenService(int seconds){
+    public void askToOpenService(int requestCode, int seconds){
         Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
         intent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, seconds);
-        activity.startActivity(intent);
+        activity.startActivityForResult(intent, requestCode);
         //Message comes from BluetoothBroadcast class
+        //But, if the user do not enable, the answer is only received in onActivityResult method
     }
 
     /**
-     * Show popup with a list of open service
+     * Show popup with a list of devices with open service
+     * This functionality is possible only with ACCESS_FINE_LOCATION permission enabled
+     * @param requestCode Number to identify the answer in onRequestPermissionsResult method when asked for permission
      */
-    public void searchForOpenService(){
-        if(checkPermissions()) {
+    public void searchForOpenService(int requestCode){
+        if(checkPermissions(requestCode)) {
             sendStatusMessage(BluetoothListener.STATUS_SEARCHING_FOR_SERVICES);
             bluetoothBroadcast.registerObserver(selectServiceDialog);
             selectServiceDialog.show();
@@ -126,7 +132,10 @@ public final class BluetoothManager implements BluetoothListener{
      * @return The connected device
      */
     public BluetoothDevice getDevice(){
-        return connectionThread.getDevice();
+        if(connectionThread != null) {
+            return connectionThread.getDevice();
+        }
+        return null;
     }
 
     /**
@@ -147,6 +156,7 @@ public final class BluetoothManager implements BluetoothListener{
     @Override
     public void messageReceived(final Intent intent) {
         if(intent.hasExtra(BluetoothListener.EXTRA_STATUS)){
+            //Some status require that specific actions would be run
             switch (intent.getIntExtra(BluetoothListener.EXTRA_STATUS, 0)) {
                 case BluetoothListener.STATUS_DISCOVERABLE_TURNED_ON:
                     openService();
@@ -160,6 +170,7 @@ public final class BluetoothManager implements BluetoothListener{
                     break;
             }
         }
+        //To send the data for activity is necessary run in its thread
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -172,6 +183,7 @@ public final class BluetoothManager implements BluetoothListener{
      * Starts the thread for connection as a Bluetooth server
      */
     private void openService(){
+        stopThead();
         connectionThread = new ServerConnectionThread(this);
         connectionThread.start();
         //Message comes from BluetoothBroadcast class
@@ -182,19 +194,32 @@ public final class BluetoothManager implements BluetoothListener{
      * @param macAddress MAC address from Bluetooth server
      */
     private void connect(String macAddress){
+        stopThead();
         connectionThread = new ClientConnectionThread(this, macAddress);
         connectionThread.start();
         //Message comes from BluetoothBroadcast class
     }
 
     /**
-     * Asks fine location permission that is necessary to connect as a Bluetooth client
+     * Kill the old thread process
+     */
+    private void stopThead(){
+        if(connectionThread != null){
+            connectionThread.cancel();
+            connectionThread.interrupt();
+            connectionThread = null;
+        }
+    }
+
+    /**
+     * Asks for ACCESS_FINE_LOCATION permission that is necessary to connect as a Bluetooth client
+     * @param requestCode Number to identify the answer in onActivityResult method
      * @return true if the permission is enabled
      */
-    private boolean checkPermissions() {
+    private boolean checkPermissions(int requestCode) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+                ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, requestCode);
                 return false;
             }
         }

@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     tools:context=".MainActivity">
 
@@ -41,6 +42,25 @@
         android:layout_height="wrap_content"
         android:text="SEARCH SERVICE"/>
 
+    <android.support.v7.widget.AppCompatButton
+        android:id="@+id/btnGetConnected"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/get_conected"/>
+
+    <android.support.design.widget.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:counterEnabled="true"
+        app:counterMaxLength="30">
+        <android.support.v7.widget.AppCompatEditText
+            android:id="@+id/edtMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Write a message"
+            android:inputType="textCapSentences"
+            android:maxLength="30"/>
+    </android.support.design.widget.TextInputLayout>
     <android.support.v7.widget.AppCompatButton
         android:id="@+id/btnSendMessage"
         android:layout_width="match_parent"
