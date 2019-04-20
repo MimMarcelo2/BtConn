@@ -22,6 +22,8 @@ public interface BluetoothListener {
     int STATUS_DEVICE_SELECTED = 7;
     int STATUS_PERMISSION_REQUIRED = 8;
     int STATUS_SEARCHING_FOR_SERVICES = 9;
+    int STATUS_CONNECTED_AS_CLIENT_CANNOT_BE_A_SERVER = 10;
+    int STATUS_CONNECTED_AS_SERVER_CANNOT_BE_A_CLIENT = 11;
 
     /**
      * Method used to enable observer pattern

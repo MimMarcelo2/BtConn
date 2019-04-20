@@ -98,12 +98,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 setStatus("Device name: " + bluetoothManager.getBluetoothAdapter().getName());
                 break;
             case R.id.btnGetConnected:
-                if(bluetoothManager.getDevice() != null){
-                    setStatus(bluetoothManager.getDevice().getName()+":"+bluetoothManager.getDevice().getAddress()+" connected");
+                String deviceMsg = "";
+                for(BluetoothDevice device: bluetoothManager.getConnectedDevices()) {
+                    if (device != null) {
+                        deviceMsg += device.getName() + ":" + device.getAddress() + " connected\n";
+                    } else {
+                        deviceMsg += "empty connection\n";
+                    }
                 }
-                else {
-                    setStatus("None device connected");
-                }
+                if(deviceMsg.equals("")) deviceMsg = "None device connected";
+                setStatus(deviceMsg);
+                break;
         }
     }
 
@@ -167,14 +172,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         setStatus("Trying connect");
                     break;
                 case BluetoothListener.STATUS_DEVICE_CONNECTED:
-                    BluetoothDevice device = bluetoothManager.getDevice();
-                    setStatus("Device: " + device.getName() + " connected");
+//                    BluetoothDevice device = bluetoothManager.getDevice(bluetoothManager.getConnectionsNumber());
+                    setStatus("Device: connected");
                     break;
                 case BluetoothListener.STATUS_PERMISSION_REQUIRED:
                     setStatus("Fine location permission required");
                     break;
                 case BluetoothListener.STATUS_SEARCHING_FOR_SERVICES:
                     setStatus("Searching for services");
+                    break;
+                case BluetoothListener.STATUS_CONNECTED_AS_SERVER_CANNOT_BE_A_CLIENT:
+                    setStatus("A server connection already exists");
+                    break;
+                case BluetoothListener.STATUS_CONNECTED_AS_CLIENT_CANNOT_BE_A_SERVER:
+                    setStatus("A client connection already exists");
                     break;
             }
         }

@@ -56,6 +56,9 @@ abstract class ConnectionThread extends Thread {
     protected BluetoothDevice getDevice(){
         Log.i("ConnectionThread", "device required");
         if(running){
+            if(device == null){
+                device = bluetoothSocket.getRemoteDevice();
+            }
             return device;
         }
         else{

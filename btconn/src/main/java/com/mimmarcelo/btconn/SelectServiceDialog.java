@@ -85,7 +85,7 @@ final class SelectServiceDialog implements BluetoothListener {
     private void closeDialog(boolean confirmed) {
         Intent intent = new Intent();
         intent.putExtra(BluetoothListener.EXTRA_STATUS, BluetoothListener.STATUS_DEVICE_SELECTED);
-        if (selectedService >= 0 && confirmed) {
+        if (selectedService >= 0 && confirmed && adapter.getItem(selectedService) != null) {
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, adapter.getItem(selectedService));
         }
         listener.messageReceived(intent);
@@ -98,6 +98,7 @@ final class SelectServiceDialog implements BluetoothListener {
      */
     protected void show() {
         bluetoothDevices.clear();
+        adapter.clear();
         BluetoothAdapter.getDefaultAdapter().startDiscovery();
         alertDialog.show();
     }

@@ -48,4 +48,14 @@ final class DeviceListAdapter extends ArrayAdapter<BluetoothDevice>{
         holder.setText(device.getName());
         return convertView;
     }
+
+    @Override
+    public BluetoothDevice getItem(int position) {
+        try{
+            return super.getItem(position);
+        }
+        catch (IndexOutOfBoundsException e){
+            return null;
+        }
+    }
 }

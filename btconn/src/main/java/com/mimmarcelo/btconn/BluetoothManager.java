@@ -15,6 +15,10 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public final class BluetoothManager implements BluetoothListener{
 
@@ -24,7 +28,7 @@ public final class BluetoothManager implements BluetoothListener{
     private Activity activity;
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothBroadcast bluetoothBroadcast;
-    private ConnectionThread connectionThread;
+    private List<ConnectionThread> connectionThreads;
     private IntentFilter filter;
     private SelectServiceDialog selectServiceDialog;
 
@@ -46,12 +50,11 @@ public final class BluetoothManager implements BluetoothListener{
         this.bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         this.selectServiceDialog = SelectServiceDialog.getInstance(activity, this);
 
-        this.connectionThread = null;
-
+        this.connectionThreads = new ArrayList<>();
     }
 
     /**
-     * Creates or returns a BluetoothManager instance (Singleton pattern)
+     * Creates and/or returns a BluetoothManager instance (Singleton pattern)
      * @param activity Instance from the BluetoothManager is called
      * @return BluetoothManager instance
      */
@@ -83,7 +86,7 @@ public final class BluetoothManager implements BluetoothListener{
      */
     public void turnOff(){
         if(bluetoothAdapter.isEnabled()) {
-            stopThead();
+            stopAllConnections();
             bluetoothAdapter.disable();
             //Message comes from BluetoothBroadcast class
         }
@@ -93,11 +96,23 @@ public final class BluetoothManager implements BluetoothListener{
     }
 
     /**
-     * Show popup asking permission to enable discovering
+     * Verifies if there are activated connections,
+     * If there are and it is a Client connection
+     * - Send status error message STATUS_CONNECTED_AS_CLIENT_CANNOT_BE_A_SERVER
+     * If there are no connection activated, or the connections are Server connection
+     * - Show popup asking permission to enable discovering
      * @param requestCode Number to identify the answer in onActivityResult method
      * @param seconds Time for discovering
      */
     public void askToOpenService(int requestCode, int seconds){
+        if(connectionThreads.size() > 0){
+            if(connectionThreads.get(0) != null){
+                if(connectionThreads.get(0) instanceof ClientConnectionThread){
+                    sendStatusMessage(BluetoothListener.STATUS_CONNECTED_AS_CLIENT_CANNOT_BE_A_SERVER);
+                    return;
+                }
+            }
+        }
         Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
         intent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, seconds);
         activity.startActivityForResult(intent, requestCode);
@@ -106,11 +121,23 @@ public final class BluetoothManager implements BluetoothListener{
     }
 
     /**
+     * Verifies if there are activated connections,
+     * If there are and it is a Server connection
+     * - Send status error message STATUS_CONNECTED_AS_SERVER_CANNOT_BE_A_CLIENT
+     * If there are no connection activated, or the connection is a Client connection
      * Show popup with a list of devices with open service
      * This functionality is possible only with ACCESS_FINE_LOCATION permission enabled
      * @param requestCode Number to identify the answer in onRequestPermissionsResult method when asked for permission
      */
     public void searchForOpenService(int requestCode){
+        if(connectionThreads.size() > 0){
+            if(connectionThreads.get(0) != null){
+                if(connectionThreads.get(0) instanceof ServerConnectionThread){
+                    sendStatusMessage(BluetoothListener.STATUS_CONNECTED_AS_SERVER_CANNOT_BE_A_CLIENT);
+                    return;
+                }
+            }
+        }
         if(checkPermissions(requestCode)) {
             sendStatusMessage(BluetoothListener.STATUS_SEARCHING_FOR_SERVICES);
             bluetoothBroadcast.registerObserver(selectServiceDialog);
@@ -129,23 +156,28 @@ public final class BluetoothManager implements BluetoothListener{
     }
 
     /**
-     * @return The connected device
+     * Returns a list of all connected devices
+     * @return devices list
      */
-    public BluetoothDevice getDevice(){
-        if(connectionThread != null) {
-            return connectionThread.getDevice();
+    public List<BluetoothDevice> getConnectedDevices(){
+        List<BluetoothDevice> devices = new ArrayList<>();
+        stopUnutilizedConnections();
+        for(ConnectionThread conn: connectionThreads){
+            devices.add(conn.getDevice());
         }
-        return null;
+        return devices;
     }
 
     /**
-     * Send a message by the connection
+     * Sends the message for all connected connections
      * @param message Message to be send
      */
     public void sendMessage(String message){
         Intent intent = new Intent();
         intent.putExtra(BluetoothListener.EXTRA_MESSAGE, message);
-        connectionThread.sendMessage(intent);
+        for(ConnectionThread conn: connectionThreads) {
+            conn.sendMessage(intent);
+        }
     }
 
     /**
@@ -180,37 +212,58 @@ public final class BluetoothManager implements BluetoothListener{
     }
 
     /**
-     * Starts the thread for connection as a Bluetooth server
+     * Starts a new thread for connection as a Bluetooth server and adds to connectionThreads list
      */
     private void openService(){
-        stopThead();
-        connectionThread = new ServerConnectionThread(this);
-        connectionThread.start();
+        ConnectionThread conn = new ServerConnectionThread(this);
+        conn.start();
+        connectionThreads.add(conn);
         //Message comes from BluetoothBroadcast class
     }
 
     /**
-     * Starts the thread for connection as a Bluetooth client
+     * If exists some connection, stops it
+     * Starts a new thread for connection as a Bluetooth client and adds to connectionThreads list
      * @param macAddress MAC address from Bluetooth server
      */
     private void connect(String macAddress){
-        stopThead();
-        connectionThread = new ClientConnectionThread(this, macAddress);
-        connectionThread.start();
+        stopAllConnections();
+        ConnectionThread conn = new ClientConnectionThread(this, macAddress);
+        conn.start();
+        connectionThreads.add(conn);
         //Message comes from BluetoothBroadcast class
     }
 
     /**
-     * Kill the old thread process
+     * Kill the activated threads processes
      */
-    private void stopThead(){
-        if(connectionThread != null){
-            connectionThread.cancel();
-            connectionThread.interrupt();
-            connectionThread = null;
+    private void stopConnection(int index){
+        if(index >= 0) {
+            if (connectionThreads.get(index) != null) {
+                ConnectionThread conn = connectionThreads.get(index);
+                conn.cancel();
+                conn.interrupt();
+                conn = null;
+            }
+            connectionThreads.remove(index);
         }
     }
 
+    private void stopAllConnections(){
+        if(connectionThreads != null){
+            for(int index = connectionThreads.size()-1; index >= 0; index--) {
+                stopConnection(index);
+            }
+        }
+    }
+
+    private void stopUnutilizedConnections(){
+        for(int index = connectionThreads.size()-1; index >= 0; index--){
+            if(connectionThreads.get(index).getDevice() == null){
+                stopConnection(index);
+            }
+        }
+    }
     /**
      * Asks for ACCESS_FINE_LOCATION permission that is necessary to connect as a Bluetooth client
      * @param requestCode Number to identify the answer in onActivityResult method
