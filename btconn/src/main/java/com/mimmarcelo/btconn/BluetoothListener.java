@@ -7,11 +7,14 @@ package com.mimmarcelo.btconn;
 import android.content.Intent;
 
 public interface BluetoothListener {
-    //Define extra data names
+
+    /* ** Public static constants ** */
+
+    // Defines extra data names
     String EXTRA_MESSAGE = "extraMessage";
     String EXTRA_STATUS = "extraStatus";
 
-    //Define EXTRA_STATUS values
+    // Defines EXTRA_STATUS values
     int STATUS_NONE = 0;
     int STATUS_BLUETOOTH_TURNED_ON = 1;
     int STATUS_BLUETOOTH_TURNED_OFF = 2;
@@ -25,9 +28,12 @@ public interface BluetoothListener {
     int STATUS_CONNECTED_AS_CLIENT_CANNOT_BE_A_SERVER = 10;
     int STATUS_CONNECTED_AS_SERVER_CANNOT_BE_A_CLIENT = 11;
 
+    /* ** Public methods ** */
+
     /**
      * Method used to enable observer pattern
+     *
      * @param intent Data received
      */
     void messageReceived(Intent intent);
-}
+} // end BluetoothListener class

@@ -17,30 +17,20 @@ import java.util.List;
 
 final class SelectServiceDialog implements BluetoothListener {
 
+    /* ** Private static attributes ** */
+
     //Singleton pattern
     private static SelectServiceDialog selectServiceDialog;
 
-    //Observer pattern
-    private BluetoothListener listener;
+    /* ** Private attributes ** */
 
+    private BluetoothListener listener; // Observer pattern
     private AlertDialog alertDialog;
     private List<BluetoothDevice> bluetoothDevices;
     private ArrayAdapter<BluetoothDevice> adapter;
     private int selectedService;
 
-    /**
-     * Creates or returns a SelectServiceDialog instance (Singleton pattern)
-     *
-     * @param context  Context from BluetoothManager
-     * @param listener Observer that receivers the selected data
-     * @return SelectedServiceDialog instance
-     */
-    protected static SelectServiceDialog getInstance(Context context, final BluetoothListener listener) {
-        if (selectServiceDialog == null) {
-            selectServiceDialog = new SelectServiceDialog(context, listener);
-        }
-        return selectServiceDialog;
-    }
+    /* ** Constructors ** */
 
     /**
      * Build the customized AlertDialog
@@ -56,12 +46,15 @@ final class SelectServiceDialog implements BluetoothListener {
         bluetoothDevices = new ArrayList<>();
         adapter = new DeviceListAdapter(context, bluetoothDevices);
 
-        selectService.setSingleChoiceItems(adapter, -1, new DialogInterface.OnClickListener() {
+        // Defines Dialog layout
+        selectService.setSingleChoiceItems(adapter, 1, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 selectedService = which;
             }
         });
+
+        // Defines events to CANCEL and CONFIRM
         selectService.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -74,22 +67,46 @@ final class SelectServiceDialog implements BluetoothListener {
                 closeDialog(true);
             }
         });
+
         alertDialog = selectService.create();
-    }
+    } // end constructor SelectServiceDialog
+
+    /* ** Public methods ** */
 
     /**
-     * Send a response to BluetoothManager (listener)
+     * Receives data from BluetoothBroadcast when a device is found
      *
-     * @param confirmed If it was clicled on "CONFIRM" button (true) or on "CANCEL" button (false)
+     * @param intent Data received
      */
-    private void closeDialog(boolean confirmed) {
-        Intent intent = new Intent();
-        intent.putExtra(BluetoothListener.EXTRA_STATUS, BluetoothListener.STATUS_DEVICE_SELECTED);
-        if (selectedService >= 0 && confirmed && adapter.getItem(selectedService) != null) {
-            intent.putExtra(BluetoothDevice.EXTRA_DEVICE, adapter.getItem(selectedService));
+    @Override
+    public void messageReceived(Intent intent) {
+        if (intent.hasExtra(BluetoothListener.EXTRA_STATUS)) {
+            if (intent.getIntExtra(BluetoothListener.EXTRA_STATUS, 0) == BluetoothListener.STATUS_DEVICE_FOUND) {
+                if (intent.hasExtra(BluetoothDevice.EXTRA_DEVICE)) {
+                    bluetoothDevices.add((BluetoothDevice) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE));
+                    adapter.notifyDataSetChanged();
+                }
+            }
+        } // end if has EXTRA_STATUS
+    } // end messageReceived method
+
+    /* ** Protected static methods ** */
+
+    /**
+     * Creates and/or returns a SelectServiceDialog instance (Singleton pattern)
+     *
+     * @param context  Context from BluetoothManager
+     * @param listener Observer that receivers the selected data
+     * @return SelectedServiceDialog instance
+     */
+    protected static SelectServiceDialog getInstance(Context context, final BluetoothListener listener) {
+        if (selectServiceDialog == null) {
+            selectServiceDialog = new SelectServiceDialog(context, listener);
         }
-        listener.messageReceived(intent);
+        return selectServiceDialog;
     }
+
+    /* ** Protected methods ** */
 
     /**
      * Cleans the list params
@@ -103,19 +120,19 @@ final class SelectServiceDialog implements BluetoothListener {
         alertDialog.show();
     }
 
+    /* ** Private methods ** */
+
     /**
-     * Receives data from BluetoothBroadcast when a device is found
-     * @param intent Data received
+     * Send a response to BluetoothManager (listener)
+     *
+     * @param confirmed If it was clicled on "CONFIRM" button (true) or on "CANCEL" button (false)
      */
-    @Override
-    public void messageReceived(Intent intent) {
-        if (intent.hasExtra(BluetoothListener.EXTRA_STATUS)) {
-            if (intent.getIntExtra(BluetoothListener.EXTRA_STATUS, 0) == BluetoothListener.STATUS_DEVICE_FOUND) {
-                if (intent.hasExtra(BluetoothDevice.EXTRA_DEVICE)) {
-                    bluetoothDevices.add((BluetoothDevice) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE));
-                    adapter.notifyDataSetChanged();
-                }
-            }
+    private void closeDialog(boolean confirmed) {
+        Intent intent = new Intent();
+        intent.putExtra(BluetoothListener.EXTRA_STATUS, BluetoothListener.STATUS_DEVICE_SELECTED);
+        if (selectedService >= 0 && confirmed && adapter.getItem(selectedService) != null) {
+            intent.putExtra(BluetoothDevice.EXTRA_DEVICE, adapter.getItem(selectedService));
         }
-    }
-}
+        listener.messageReceived(intent);
+    } // end closeDialog method
+} // end SelectServiceDialog class

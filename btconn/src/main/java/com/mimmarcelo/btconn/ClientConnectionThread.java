@@ -12,15 +12,28 @@ import java.io.IOException;
 
 final class ClientConnectionThread extends ConnectionThread {
 
+    /* ** Private attributes ** */
+
     private String macAddress;
 
+    /* ** Constructors ** */
+
+    /**
+     * Creates a connection as a Bluetooth client and register the observer
+     *
+     * @param bluetoothListener
+     * @param macAddress
+     */
     protected ClientConnectionThread(BluetoothListener bluetoothListener, String macAddress) {
         super(bluetoothListener);
         this.macAddress = macAddress;
     }
 
+    /* ** Protected methods ** */
+
     /**
      * Establishes a connection as a Bluetooth client
+     *
      * @return BluetoothSocket with connection established
      */
     @Override
@@ -31,9 +44,10 @@ final class ClientConnectionThread extends ConnectionThread {
 
             bluetoothSocket.connect();
             return bluetoothSocket;
-        } catch (IOException e) {
+        } // end try clause
+        catch (IOException e) {
             e.printStackTrace();
         }
         return null;
-    }
-}
+    } // end connect method
+} // end ClientConnectionThread class

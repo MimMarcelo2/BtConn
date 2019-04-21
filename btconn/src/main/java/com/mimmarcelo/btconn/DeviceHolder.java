@@ -6,15 +6,21 @@ package com.mimmarcelo.btconn;
 
 import android.widget.TextView;
 
-final class DeviceHolder{
+final class DeviceHolder {
+
+    /* ** Private attributes ** */
 
     private TextView textView;
+
+    /* ** Constructors ** */
 
     public DeviceHolder(TextView textView) {
         this.textView = textView;
     }
 
-    public void setText(String name){
+    /* ** Public methods ** */
+
+    public void setText(String name) {
         this.textView.setText(name);
     }
-}
+} // end DeviceHolder class

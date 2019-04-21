@@ -11,12 +11,18 @@ import android.bluetooth.BluetoothSocket;
 import java.io.IOException;
 
 class ServerConnectionThread extends ConnectionThread {
+
+    /* ** Constructors ** */
+
     protected ServerConnectionThread(BluetoothListener bluetoothListener) {
         super(bluetoothListener);
     }
 
+    /* ** Protected methods ** */
+
     /**
      * Establishes a connection as a Bluuetooth server
+     *
      * @return BluetoothSocket with connection established
      */
     @Override
@@ -27,9 +33,10 @@ class ServerConnectionThread extends ConnectionThread {
             serverSocket.close();
 
             return bluetoothSocket;
-        } catch (IOException e) {
+        } // end try clause
+        catch (IOException e) {
             e.printStackTrace();
         }
         return null;
-    }
-}
+    } // end connect method
+} // end ClientConnectionThread class

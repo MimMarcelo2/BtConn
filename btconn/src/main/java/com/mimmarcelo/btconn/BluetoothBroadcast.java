@@ -1,6 +1,6 @@
 /**
  * File name: BluetoothBroadcast
- * It is responsible to read the changes in the BluetoothAdapter
+ * It is responsible to read the changes on BluetoothAdapter
  * Turned on, turned off, discoverable, time out of discoverable, device connected
  */
 package com.mimmarcelo.btconn;
@@ -16,21 +16,32 @@ import java.util.List;
 
 final class BluetoothBroadcast extends BroadcastReceiver {
 
-    //Singleton pattern
+    /* ** Private attributes ** */
+
+    // Singleton pattern
     private static BluetoothBroadcast bluetoothBroadcast;
 
-    //Observer pattern
+    // Observer pattern
     private List<BluetoothListener> bluetoothListeners;
+
     private int prevScanMode;
 
-    //Singleton pattern
+    /* ** Constructors ** */
+
+    /**
+     * Singleton pattern
+     */
     private BluetoothBroadcast() {
         this.bluetoothListeners = new ArrayList<>();
         this.prevScanMode = 0;
     }
 
+    /* ** Public static methods ** */
+
     /**
-     * Creates or returns a BluetoothBroadcast instance (Singleton pattern)
+     * Singleton pattern
+     * Creates and/or returns a BluetoothBroadcast instance
+     *
      * @return BluetoothBroadcast instance
      */
     public static BluetoothBroadcast getBluetoothBroadcast() {
@@ -40,30 +51,35 @@ final class BluetoothBroadcast extends BroadcastReceiver {
         return bluetoothBroadcast;
     }
 
+    /* ** Public methods ** */
+
     /**
      * Observer pattern
+     *
      * @param bluetoothListener
      */
-    public void registerObserver(BluetoothListener bluetoothListener){
-        if(!bluetoothListeners.contains(bluetoothListener)) {
+    public void registerObserver(BluetoothListener bluetoothListener) {
+        if (!bluetoothListeners.contains(bluetoothListener)) {
             bluetoothListeners.add(bluetoothListener);
         }
     }
 
     /**
      * Observer pattern
+     *
      * @param bluetoothListener
      */
-    public void unregisterObserver(BluetoothListener bluetoothListener){
-        if(bluetoothListeners.contains(bluetoothListener)){
+    public void unregisterObserver(BluetoothListener bluetoothListener) {
+        if (bluetoothListeners.contains(bluetoothListener)) {
             bluetoothListeners.remove(bluetoothListener);
         }
     }
 
     /**
      * Reads the updates on BluetoothAdapter
+     *
      * @param context Context from current activity
-     * @param intent Action from BluetoothAdapter
+     * @param intent  Action from BluetoothAdapter
      */
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -76,7 +92,7 @@ final class BluetoothBroadcast extends BroadcastReceiver {
                 case BluetoothAdapter.SCAN_MODE_CONNECTABLE:
                     if (prevScanMode == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
                         status = BluetoothListener.STATUS_DISCOVERABLE_TURNED_OFF;
-                    } else if (prevScanMode != BluetoothListener.STATUS_BLUETOOTH_TURNED_ON){
+                    } else if (prevScanMode != BluetoothListener.STATUS_BLUETOOTH_TURNED_ON) {
                         status = BluetoothListener.STATUS_BLUETOOTH_TURNED_ON;
                     }
                     break;
@@ -86,27 +102,24 @@ final class BluetoothBroadcast extends BroadcastReceiver {
                 case BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE:
                     status = BluetoothListener.STATUS_DISCOVERABLE_TURNED_ON;
                     break;
-            } //end switch scanMode
+            } // end switch scanMode
 
             prevScanMode = scanMode;
-        } //end if ACTION_SCAN_MODE_CHANGED
-        else
-            if(intent.getAction().equals(BluetoothDevice.ACTION_ACL_CONNECTED)){
+        } // end if ACTION_SCAN_MODE_CHANGED
+        else if (intent.getAction().equals(BluetoothDevice.ACTION_ACL_CONNECTED)) {
             BluetoothAdapter.getDefaultAdapter().cancelDiscovery();
             prevScanMode = BluetoothListener.STATUS_BLUETOOTH_TURNED_ON;
             status = BluetoothListener.STATUS_NONE;
-        }//end if ACTION_ACL_CONNECTED
-        else
-            if(intent.getAction().equals(BluetoothDevice.ACTION_FOUND)){
+        } // end if ACTION_ACL_CONNECTED
+        else if (intent.getAction().equals(BluetoothDevice.ACTION_FOUND)) {
             status = BluetoothListener.STATUS_DEVICE_FOUND;
         }
 
         intent.putExtra(BluetoothListener.EXTRA_STATUS, status);
 
-        //Send data to observers
-        for (BluetoothListener bluetoothListener: bluetoothListeners) {
+        // Send data to observers
+        for (BluetoothListener bluetoothListener : bluetoothListeners) {
             bluetoothListener.messageReceived(intent);
         }
-    }
-
-}
+    } // end onReceive method
+} // end BluetoothBroadcast class
