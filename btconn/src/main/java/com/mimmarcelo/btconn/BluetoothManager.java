@@ -35,6 +35,7 @@ public final class BluetoothManager implements BluetoothListener {
     private List<ConnectionThread> connectionThreads;
     private IntentFilter filter;
     private SelectServiceDialog selectServiceDialog;
+    private SelectConnectionDialog selectConnectionDialog;
 
     /* ** Constructors ** */
 
@@ -59,6 +60,7 @@ public final class BluetoothManager implements BluetoothListener {
 
         this.bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         this.selectServiceDialog = SelectServiceDialog.getInstance(activity, this);
+        this.selectConnectionDialog = SelectConnectionDialog.getInstance(activity, this);
 
         this.connectionThreads = new ArrayList<>();
     } // end constructor BluetoothManager
@@ -94,8 +96,7 @@ public final class BluetoothManager implements BluetoothListener {
      */
     public List<BluetoothDevice> getConnectedDevices() {
         List<BluetoothDevice> devices = new ArrayList<>();
-        stopUnutilizedConnections();
-        for (ConnectionThread conn : connectionThreads) {
+        for (ConnectionThread conn : getConnectionThreads()) {
             devices.add(conn.getDevice());
         }
         return devices;
@@ -187,6 +188,19 @@ public final class BluetoothManager implements BluetoothListener {
     } // end askToOpenService method
 
     /**
+     * Shows a popup with all current connections
+     * The selected connection will be closed
+     */
+    public void selectConnectionToClose(){
+        if(getConnectionThreads().size() > 0) {
+            selectConnectionDialog.show(getConnectionThreads());
+        }
+        else {
+            sendStatusMessage(BluetoothListener.STATUS_NOT_CONNECTED);
+        }
+    }
+
+    /**
      * Sends the message for all connected connections
      *
      * @param message Message to be send
@@ -220,6 +234,12 @@ public final class BluetoothManager implements BluetoothListener {
                         connect(d.getAddress());
                     }
                     break; // end case STATUS_DEVICE_SELECTED
+                case BluetoothListener.STATUS_CONNECTION_SELECTED:
+                    // Finishes the selected connection
+                    if(intent.hasExtra(BluetoothListener.EXTRA_CONNECTION)){
+                        stopConnection(connectionThreads.indexOf(intent.getSerializableExtra(BluetoothListener.EXTRA_CONNECTION)));
+                    }
+                    break;
             } // end switch EXTRA_STATUS
         } // end if has EXTRA_STATUS
 
@@ -233,6 +253,16 @@ public final class BluetoothManager implements BluetoothListener {
     } // end messageReceived method
 
     /* ** Private methods ** */
+
+    /**
+     * Returns a list of current connections
+     *
+     * @return Connections list
+     */
+    private List<ConnectionThread> getConnectionThreads(){
+        stopUnutilizedConnections();
+        return connectionThreads;
+    }
 
     /**
      * Starts a new thread for connection as a Bluetooth server and adds to connectionThreads list

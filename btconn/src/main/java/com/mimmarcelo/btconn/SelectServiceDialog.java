@@ -125,7 +125,7 @@ final class SelectServiceDialog implements BluetoothListener {
     /**
      * Send a response to BluetoothManager (listener)
      *
-     * @param confirmed If it was clicled on "CONFIRM" button (true) or on "CANCEL" button (false)
+     * @param confirmed If it was pushed on "CONFIRM" button (true) or on "CANCEL" button (false)
      */
     private void closeDialog(boolean confirmed) {
         Intent intent = new Intent();

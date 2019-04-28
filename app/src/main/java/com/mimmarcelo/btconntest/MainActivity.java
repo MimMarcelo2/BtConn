@@ -63,6 +63,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 setStatus("Searching for service");
                 bluetoothManager.searchForOpenService(ASK_PERMISSION);
                 break;
+            case R.id.btnCloseConnection:
+                bluetoothManager.selectConnectionToClose();
+                break;
             case R.id.btnShowDeviceName:
                 setStatus("Device name: " + bluetoothManager.getBluetoothAdapter().getName());
                 break;
@@ -130,6 +133,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 case BluetoothListener.STATUS_DISCOVERABLE_TURNED_OFF:
                     setStatus("Time out for connection");
                     break;
+                case BluetoothListener.STATUS_NOT_CONNECTED:
+                    setStatus("No connected");
+                    break;
                 case BluetoothListener.STATUS_DEVICE_SELECTED:
                     if(!intent.hasExtra(BluetoothDevice.EXTRA_DEVICE))//When none device was selected
                         setStatus("None device selected");
@@ -138,6 +144,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     break;
                 case BluetoothListener.STATUS_DEVICE_CONNECTED:
                     setStatus("Device: connected");
+                    break;
+                case BluetoothListener.STATUS_CONNECTION_SELECTED:
+                    setStatus("Connection closed");
                     break;
                 case BluetoothListener.STATUS_PERMISSION_REQUIRED:
                     setStatus("Fine location permission required");
@@ -196,6 +205,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btn.setOnClickListener(this);
 
         btn = findViewById(R.id.btnGetConnected);
+        btn.setOnClickListener(this);
+
+        btn = findViewById(R.id.btnCloseConnection);
         btn.setOnClickListener(this);
 
         //Verifies if the Bluetooth is enabled

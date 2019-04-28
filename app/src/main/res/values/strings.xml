@@ -6,4 +6,8 @@
     <string name="show_device_name">SHOW DEVICE NAME</string>
     <string name="send_message">SEND MESSAGE</string>
     <string name="get_conected">GET CONECTED</string>
+    <string name="close_connection">CLOSE CONNECTION</string>
+    <string name="open_service">OPEN SERVICE</string>
+    <string name="search_service">SEARCH SERVICE</string>
+    <string name="write_a_message">Write a message</string>
 </resources>

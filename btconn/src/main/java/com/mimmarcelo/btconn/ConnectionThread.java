@@ -1,6 +1,9 @@
 /**
  * File name: ConnectionBluetooth
  * Defines the procedures to establish a bluetooth connection
+ *
+ * *******************************
+ * It is necessary implement Parcelable instead Serializable
  */
 package com.mimmarcelo.btconn;
 
@@ -12,9 +15,10 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.util.Arrays;
 
-abstract class ConnectionThread extends Thread {
+abstract class ConnectionThread extends Thread implements Serializable {
 
     /* ** Protected final attributes ** */
 

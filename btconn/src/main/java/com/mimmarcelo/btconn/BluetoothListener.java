@@ -13,6 +13,7 @@ public interface BluetoothListener {
     // Defines extra data names
     String EXTRA_MESSAGE = "extraMessage";
     String EXTRA_STATUS = "extraStatus";
+    String EXTRA_CONNECTION = "extraConnection";
 
     // Defines EXTRA_STATUS values
     int STATUS_NONE = 0;
@@ -27,6 +28,8 @@ public interface BluetoothListener {
     int STATUS_SEARCHING_FOR_SERVICES = 9;
     int STATUS_CONNECTED_AS_CLIENT_CANNOT_BE_A_SERVER = 10;
     int STATUS_CONNECTED_AS_SERVER_CANNOT_BE_A_CLIENT = 11;
+    int STATUS_NOT_CONNECTED = 12;
+    int STATUS_CONNECTION_SELECTED = 13;
 
     /* ** Public methods ** */
 
