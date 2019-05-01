@@ -106,14 +106,18 @@ final class BluetoothBroadcast extends BroadcastReceiver {
 
             prevScanMode = scanMode;
         } // end if ACTION_SCAN_MODE_CHANGED
+        else if (intent.getAction().equals(BluetoothDevice.ACTION_FOUND)) {
+            status = BluetoothListener.STATUS_DEVICE_FOUND;
+        }
         else if (intent.getAction().equals(BluetoothDevice.ACTION_ACL_CONNECTED)) {
             BluetoothAdapter.getDefaultAdapter().cancelDiscovery();
             prevScanMode = BluetoothListener.STATUS_BLUETOOTH_TURNED_ON;
             status = BluetoothListener.STATUS_NONE;
         } // end if ACTION_ACL_CONNECTED
-        else if (intent.getAction().equals(BluetoothDevice.ACTION_FOUND)) {
-            status = BluetoothListener.STATUS_DEVICE_FOUND;
+        else if(intent.getAction().equals(BluetoothDevice.ACTION_ACL_DISCONNECTED)){
+            status = BluetoothListener.STATUS_DEVICE_DISCONNECTED;
         }
+
 
         intent.putExtra(BluetoothListener.EXTRA_STATUS, status);
 

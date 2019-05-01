@@ -49,8 +49,9 @@ public final class BluetoothManager implements BluetoothListener {
         //Set for Broadcast listen to
         this.filter = new IntentFilter();
         this.filter.addAction(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED);
-        this.filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
         this.filter.addAction(BluetoothDevice.ACTION_FOUND);
+        this.filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
+        this.filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
 
         this.bluetoothBroadcast = BluetoothBroadcast.getBluetoothBroadcast();
         this.bluetoothBroadcast.registerObserver(this);
@@ -240,6 +241,16 @@ public final class BluetoothManager implements BluetoothListener {
                         stopConnection(connectionThreads.indexOf(intent.getSerializableExtra(BluetoothListener.EXTRA_CONNECTION)));
                     }
                     break;
+                case BluetoothListener.STATUS_DEVICE_DISCONNECTED:
+                    if (intent.hasExtra(BluetoothDevice.EXTRA_DEVICE)) {
+                        BluetoothDevice d = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                        for(int i = connectionThreads.size()-1; i >=0 ; i--){
+                            if(connectionThreads.get(i).getDevice().getAddress().equals(d.getAddress())){
+                                stopConnection(i);
+                                break;
+                            }
+                        }
+                    }
             } // end switch EXTRA_STATUS
         } // end if has EXTRA_STATUS
 

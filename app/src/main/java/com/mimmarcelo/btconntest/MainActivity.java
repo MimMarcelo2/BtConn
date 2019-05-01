@@ -160,6 +160,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 case BluetoothListener.STATUS_CONNECTED_AS_CLIENT_CANNOT_BE_A_SERVER:
                     setStatus("A client connection already exists");
                     break;
+                case BluetoothListener.STATUS_DEVICE_DISCONNECTED:
+                    setStatus("Connection closed with " +((BluetoothDevice)intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)).getName());
             } // end switch EXTRA_STATUS
         } // end if has EXTRA_STATUS
         else if(intent.hasExtra(BluetoothListener.EXTRA_MESSAGE)){

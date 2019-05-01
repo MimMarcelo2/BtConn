@@ -30,6 +30,7 @@ public interface BluetoothListener {
     int STATUS_CONNECTED_AS_SERVER_CANNOT_BE_A_CLIENT = 11;
     int STATUS_NOT_CONNECTED = 12;
     int STATUS_CONNECTION_SELECTED = 13;
+    int STATUS_DEVICE_DISCONNECTED = 14;
 
     /* ** Public methods ** */
 
