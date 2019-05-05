@@ -1,10 +1,11 @@
 /**
  * File name: BluetoothBroadcast
- * It is responsible to read the changes on BluetoothAdapter
- * Turned on, turned off, discoverable, time out of discoverable, device connected
+ * It is responsible to read the changes on {@link android.bluetooth.BluetoothAdapter}
+ * Turned on, turned off, discoverable, time out of discoverable, device (dis)connected
  */
 package com.mimmarcelo.btconn;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
@@ -16,20 +17,34 @@ import java.util.List;
 
 final class BluetoothBroadcast extends BroadcastReceiver {
 
+    /* ** Private static attributes ** */
+
+    private static BluetoothBroadcast bluetoothBroadcast; // Singleton pattern
+
     /* ** Private attributes ** */
 
-    // Singleton pattern
-    private static BluetoothBroadcast bluetoothBroadcast;
+    private List<BluetoothListener> bluetoothListeners; // Observer pattern
 
-    // Observer pattern
-    private List<BluetoothListener> bluetoothListeners;
-
+    /**
+     * Allow getting different combined {@link BluetoothAdapter#ACTION_SCAN_MODE_CHANGED} states:
+     *
+     * <ul>
+     *     <li>When the {@link BluetoothAdapter} is turned on from off state</li>
+     *     <li>Or when the {@link BluetoothAdapter} discoverable ends</li>
+     * </ul>
+     *
+     * @see #onReceive(Context, Intent)
+     */
     private int prevScanMode;
 
     /* ** Constructors ** */
 
     /**
      * Singleton pattern
+     *
+     * To get the {@link BluetoothBroadcast} instance call {@link #getBluetoothBroadcast()}
+     *
+     * @see #getBluetoothBroadcast()
      */
     private BluetoothBroadcast() {
         this.bluetoothListeners = new ArrayList<>();
@@ -40,9 +55,10 @@ final class BluetoothBroadcast extends BroadcastReceiver {
 
     /**
      * Singleton pattern
-     * Creates and/or returns a BluetoothBroadcast instance
      *
-     * @return BluetoothBroadcast instance
+     * (Create and) and return the {@link BluetoothBroadcast} instance
+     *
+     * @return The BluetoothBroadcast instance
      */
     public static BluetoothBroadcast getBluetoothBroadcast() {
         if (bluetoothBroadcast == null) {
@@ -56,7 +72,9 @@ final class BluetoothBroadcast extends BroadcastReceiver {
     /**
      * Observer pattern
      *
-     * @param bluetoothListener
+     * Register the observers ({@link BluetoothListener}
+     *
+     * @param bluetoothListener observer to be registered
      */
     public void registerObserver(BluetoothListener bluetoothListener) {
         if (!bluetoothListeners.contains(bluetoothListener)) {
@@ -67,7 +85,9 @@ final class BluetoothBroadcast extends BroadcastReceiver {
     /**
      * Observer pattern
      *
-     * @param bluetoothListener
+     * Unregister the observers ({@link BluetoothListener}
+     *
+     * @param bluetoothListener observer to be unregistered
      */
     public void unregisterObserver(BluetoothListener bluetoothListener) {
         if (bluetoothListeners.contains(bluetoothListener)) {
@@ -76,54 +96,70 @@ final class BluetoothBroadcast extends BroadcastReceiver {
     }
 
     /**
-     * Reads the updates on BluetoothAdapter
+     * This method is called when the BroadcastReceiver is receiving an Intent broadcast.
      *
-     * @param context Context from current activity
-     * @param intent  Action from BluetoothAdapter
+     * The Intent filters used in {@link android.content.Context#registerReceiver} are
+     * registered in {@link BluetoothManager#setActivity(Activity)} and are:
+     *
+     * <ul>
+     *     <li>{@link BluetoothAdapter#ACTION_SCAN_MODE_CHANGED}</li>
+     *     <li>{@link BluetoothDevice#ACTION_FOUND}</li>
+     *     <li>{@link BluetoothDevice#ACTION_ACL_CONNECTED}</li>
+     *     <li>{@link BluetoothDevice#ACTION_ACL_DISCONNECTED}</li>
+     * </ul>
+     *
+     * @param context The Context in which the receiver is running.
+     * @param intent The Intent being received.
+     *
+     * @see BluetoothManager#setActivity(Activity)
+     * @see BroadcastReceiver#onReceive(Context, Intent)
+     * @see BluetoothAdapter#ACTION_SCAN_MODE_CHANGED
+     * @see BluetoothDevice#ACTION_FOUND
+     * @see BluetoothDevice#ACTION_ACL_CONNECTED
+     * @see BluetoothDevice#ACTION_ACL_DISCONNECTED
      */
     @Override
     public void onReceive(Context context, Intent intent) {
-        int status = BluetoothListener.STATUS_NONE;
+        int requestCode = BluetoothListener.NO_ACTION; // Request code to be send to observers
 
-        if (intent.getAction().equals(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED)) {
-            int scanMode = intent.getIntExtra(BluetoothAdapter.EXTRA_SCAN_MODE, BluetoothAdapter.SCAN_MODE_NONE);
+        switch (intent.getAction()){
+            case BluetoothAdapter.ACTION_SCAN_MODE_CHANGED: // Read changes in BluetoothAdapter
+                int scanMode = intent.getIntExtra(BluetoothAdapter.EXTRA_SCAN_MODE, BluetoothAdapter.SCAN_MODE_NONE);
 
-            switch (scanMode) {
-                case BluetoothAdapter.SCAN_MODE_CONNECTABLE:
-                    if (prevScanMode == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
-                        status = BluetoothListener.STATUS_DISCOVERABLE_TURNED_OFF;
-                    } else if (prevScanMode != BluetoothListener.STATUS_BLUETOOTH_TURNED_ON) {
-                        status = BluetoothListener.STATUS_BLUETOOTH_TURNED_ON;
-                    }
-                    break;
-                case BluetoothAdapter.SCAN_MODE_NONE:
-                    status = BluetoothListener.STATUS_BLUETOOTH_TURNED_OFF;
-                    break;
-                case BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE:
-                    status = BluetoothListener.STATUS_DISCOVERABLE_TURNED_ON;
-                    break;
-            } // end switch scanMode
+                switch (scanMode) {
+                    case BluetoothAdapter.SCAN_MODE_CONNECTABLE:
+                        if (prevScanMode == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
+                            requestCode = BluetoothListener.TURN_DISCOVERABLE_OFF;
+                        } else if (prevScanMode != BluetoothListener.TURN_BLUETOOTH_ON) {
+                            requestCode = BluetoothListener.TURN_BLUETOOTH_ON;
+                        }
+                        break;
+                    case BluetoothAdapter.SCAN_MODE_NONE:
+                        requestCode = BluetoothListener.TURN_BLUETOOTH_OFF;
+                        break;
+                    case BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE:
+                        requestCode = BluetoothListener.TURN_DISCOVERABLE_ON;
+                        break;
+                } // end switch scanMode
 
-            prevScanMode = scanMode;
-        } // end if ACTION_SCAN_MODE_CHANGED
-        else if (intent.getAction().equals(BluetoothDevice.ACTION_FOUND)) {
-            status = BluetoothListener.STATUS_DEVICE_FOUND;
-        }
-        else if (intent.getAction().equals(BluetoothDevice.ACTION_ACL_CONNECTED)) {
-            BluetoothAdapter.getDefaultAdapter().cancelDiscovery();
-            prevScanMode = BluetoothListener.STATUS_BLUETOOTH_TURNED_ON;
-            status = BluetoothListener.STATUS_NONE;
-        } // end if ACTION_ACL_CONNECTED
-        else if(intent.getAction().equals(BluetoothDevice.ACTION_ACL_DISCONNECTED)){
-            status = BluetoothListener.STATUS_DEVICE_DISCONNECTED;
-        }
-
-
-        intent.putExtra(BluetoothListener.EXTRA_STATUS, status);
+                prevScanMode = scanMode; // Register this scan mode
+                break; // end case ACTION_SCAN_MODE_CHANGED
+            case BluetoothDevice.ACTION_FOUND: // Device found
+                requestCode = BluetoothListener.DEVICE_FOUND;
+                break;
+            case BluetoothDevice.ACTION_ACL_CONNECTED: // Device connected
+                BluetoothAdapter.getDefaultAdapter().cancelDiscovery();
+                prevScanMode = BluetoothListener.TURN_BLUETOOTH_ON;
+                requestCode = BluetoothListener.NO_ACTION;
+                break;
+            case BluetoothDevice.ACTION_ACL_DISCONNECTED: // Device disconnected
+                requestCode = BluetoothListener.DEVICE_DISCONNECTED;
+                break;
+        } // end switch intent.getAction()
 
         // Send data to observers
         for (BluetoothListener bluetoothListener : bluetoothListeners) {
-            bluetoothListener.messageReceived(intent);
+            bluetoothListener.onActivityResult(requestCode, Activity.RESULT_OK, intent);
         }
     } // end onReceive method
 } // end BluetoothBroadcast class

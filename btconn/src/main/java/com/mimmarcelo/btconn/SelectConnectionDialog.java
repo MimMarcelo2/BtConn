@@ -4,6 +4,7 @@
  */
 package com.mimmarcelo.btconn;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -56,13 +57,13 @@ final class SelectConnectionDialog {
         selectConnection.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                closeDialog(false);
+                closeDialog(Activity.RESULT_CANCELED);
             }
         });
         selectConnection.setPositiveButton("CONFIRM", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                closeDialog(true);
+                closeDialog(Activity.RESULT_OK);
             }
         });
 
@@ -104,14 +105,19 @@ final class SelectConnectionDialog {
     /**
      * Send a response to BluetoothManager (listener)
      *
-     * @param confirmed If it was pushed on "CONFIRM" button (true) or on "CANCEL" button (false)
+     * @param resultCode If it was pushed on "CONFIRM" button (true) or on "CANCEL" button (false)
      */
-    private void closeDialog(boolean confirmed) {
-        Intent intent = new Intent();
-        intent.putExtra(BluetoothListener.EXTRA_STATUS, BluetoothListener.STATUS_CONNECTION_SELECTED);
-        if (selectedService >= 0 && confirmed && adapter.getItem(selectedService) != null) {
-            intent.putExtra(BluetoothListener.EXTRA_CONNECTION, adapter.getItem(selectedService));
+    private void closeDialog(int resultCode) {
+        Intent intent = null;
+        if(resultCode == Activity.RESULT_OK) {
+            if (selectedService >= 0 && adapter.getItem(selectedService) != null) {
+                intent = new Intent();
+                intent.putExtra(BluetoothListener.EXTRA_PARAM, adapter.getItem(selectedService));
+            }
+            else {
+                resultCode = Activity.RESULT_CANCELED;
+            }
         }
-        listener.messageReceived(intent);
+        listener.onActivityResult(BluetoothListener.CLOSE_CONNECTION, resultCode, intent);
     } // end closeDialog method
 } // end SelectConnectionDialog class

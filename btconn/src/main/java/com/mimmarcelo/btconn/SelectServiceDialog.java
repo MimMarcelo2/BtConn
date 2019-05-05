@@ -4,6 +4,7 @@
  */
 package com.mimmarcelo.btconn;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
@@ -58,13 +59,13 @@ final class SelectServiceDialog implements BluetoothListener {
         selectService.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                closeDialog(false);
+                closeDialog(Activity.RESULT_CANCELED);
             }
         });
         selectService.setPositiveButton("CONFIRM", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                closeDialog(true);
+                closeDialog(Activity.RESULT_OK);
             }
         });
 
@@ -76,19 +77,17 @@ final class SelectServiceDialog implements BluetoothListener {
     /**
      * Receives data from BluetoothBroadcast when a device is found
      *
-     * @param intent Data received
+     * @param data Data received
      */
     @Override
-    public void messageReceived(Intent intent) {
-        if (intent.hasExtra(BluetoothListener.EXTRA_STATUS)) {
-            if (intent.getIntExtra(BluetoothListener.EXTRA_STATUS, 0) == BluetoothListener.STATUS_DEVICE_FOUND) {
-                if (intent.hasExtra(BluetoothDevice.EXTRA_DEVICE)) {
-                    bluetoothDevices.add((BluetoothDevice) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE));
-                    adapter.notifyDataSetChanged();
-                }
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == BluetoothListener.DEVICE_FOUND) {
+            if (data.hasExtra(BluetoothDevice.EXTRA_DEVICE)) {
+                bluetoothDevices.add((BluetoothDevice) data.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE));
+                adapter.notifyDataSetChanged();
             }
-        } // end if has EXTRA_STATUS
-    } // end messageReceived method
+        }
+    } // end onActivityResult method
 
     /* ** Protected static methods ** */
 
@@ -125,14 +124,18 @@ final class SelectServiceDialog implements BluetoothListener {
     /**
      * Send a response to BluetoothManager (listener)
      *
-     * @param confirmed If it was pushed on "CONFIRM" button (true) or on "CANCEL" button (false)
+     * @param resultCode If it was pushed on "CONFIRM" button (true) or on "CANCEL" button (false)
      */
-    private void closeDialog(boolean confirmed) {
-        Intent intent = new Intent();
-        intent.putExtra(BluetoothListener.EXTRA_STATUS, BluetoothListener.STATUS_DEVICE_SELECTED);
-        if (selectedService >= 0 && confirmed && adapter.getItem(selectedService) != null) {
-            intent.putExtra(BluetoothDevice.EXTRA_DEVICE, adapter.getItem(selectedService));
+    private void closeDialog(int resultCode) {
+        Intent intent = null;
+        if(resultCode == Activity.RESULT_OK) {
+            if (selectedService >= 0 && adapter.getItem(selectedService) != null) {
+                intent = new Intent();
+                intent.putExtra(BluetoothListener.EXTRA_PARAM, adapter.getItem(selectedService));
+            } else {
+                resultCode = Activity.RESULT_CANCELED;
+            }
         }
-        listener.messageReceived(intent);
+        listener.onActivityResult(DEVICE_SELECTED, resultCode, intent);
     } // end closeDialog method
 } // end SelectServiceDialog class

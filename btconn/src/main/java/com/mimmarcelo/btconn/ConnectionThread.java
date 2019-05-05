@@ -7,6 +7,7 @@
  */
 package com.mimmarcelo.btconn;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
@@ -54,7 +55,7 @@ abstract class ConnectionThread extends Thread implements Serializable {
     /* ** Public methods ** */
 
     /**
-     * Process parallel to UI to prevent the UI process freeze
+     * Process parallel to UI to prevent the UI process freezes
      * Ask for the right connection type
      */
     @Override
@@ -63,11 +64,11 @@ abstract class ConnectionThread extends Thread implements Serializable {
         if (bluetoothSocket != null) {
             running = true;
             device = bluetoothSocket.getRemoteDevice();
-            Log.i("ConnectionThread", "device setted: " + device.getName());
+            Log.i("ConnectionThread", "Device set: " + device.getName());
 
             Intent intent = new Intent();
-            intent.putExtra(BluetoothListener.EXTRA_STATUS, BluetoothListener.STATUS_DEVICE_CONNECTED);
-            bluetoothListener.messageReceived(intent);//Registers "Connected" message
+            intent.putExtra(BluetoothListener.EXTRA_DEVICE, device);
+            bluetoothListener.onActivityResult(BluetoothListener.DEVICE_CONNECTED, Activity.RESULT_OK, intent);//Registers "Connected" message
 
             try {
                 input = bluetoothSocket.getInputStream();
@@ -75,6 +76,7 @@ abstract class ConnectionThread extends Thread implements Serializable {
                 connectionLoop(); // Receive all bluetooth messages
                 cancel();
             } catch (IOException e) {
+                running = false;
                 e.printStackTrace();
             }
         } // end if bluetoothSocket != null
@@ -189,7 +191,7 @@ abstract class ConnectionThread extends Thread implements Serializable {
         while (running) {
             bytes = input.read(buffer);
             intent.putExtra(BluetoothListener.EXTRA_MESSAGE, sanitizeString(Arrays.copyOfRange(buffer, 0, bytes)));
-            bluetoothListener.messageReceived(intent);
+            bluetoothListener.onActivityResult(BluetoothListener.MESSAGE_RECEIVED, Activity.RESULT_OK, intent);
         }
     } // end connectionLoop method
 }
