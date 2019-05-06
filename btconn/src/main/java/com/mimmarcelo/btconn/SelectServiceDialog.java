@@ -48,7 +48,7 @@ final class SelectServiceDialog implements BluetoothListener {
         adapter = new DeviceListAdapter(context, bluetoothDevices);
 
         // Defines Dialog layout
-        selectService.setSingleChoiceItems(adapter, 1, new DialogInterface.OnClickListener() {
+        selectService.setSingleChoiceItems(adapter, -1, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 selectedService = which;
@@ -115,6 +115,7 @@ final class SelectServiceDialog implements BluetoothListener {
     protected void show() {
         bluetoothDevices.clear();
         adapter.clear();
+        BluetoothBroadcast.getInstance().registerObserver(this);
         BluetoothAdapter.getDefaultAdapter().startDiscovery();
         alertDialog.show();
     }
@@ -136,6 +137,7 @@ final class SelectServiceDialog implements BluetoothListener {
                 resultCode = Activity.RESULT_CANCELED;
             }
         }
+        BluetoothBroadcast.getInstance().unregisterObserver(this);
         listener.onActivityResult(DEVICE_SELECTED, resultCode, intent);
     } // end closeDialog method
 } // end SelectServiceDialog class

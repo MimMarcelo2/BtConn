@@ -42,9 +42,9 @@ final class BluetoothBroadcast extends BroadcastReceiver {
     /**
      * Singleton pattern
      *
-     * To get the {@link BluetoothBroadcast} instance call {@link #getBluetoothBroadcast()}
+     * To get the {@link BluetoothBroadcast} instance call {@link #getInstance()}
      *
-     * @see #getBluetoothBroadcast()
+     * @see #getInstance()
      */
     private BluetoothBroadcast() {
         this.bluetoothListeners = new ArrayList<>();
@@ -60,7 +60,7 @@ final class BluetoothBroadcast extends BroadcastReceiver {
      *
      * @return The BluetoothBroadcast instance
      */
-    public static BluetoothBroadcast getBluetoothBroadcast() {
+    public static BluetoothBroadcast getInstance() {
         if (bluetoothBroadcast == null) {
             bluetoothBroadcast = new BluetoothBroadcast();
         }

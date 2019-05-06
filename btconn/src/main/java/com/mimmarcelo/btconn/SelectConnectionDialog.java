@@ -46,7 +46,7 @@ final class SelectConnectionDialog {
         adapter = new ConnectionListAdapter(context, connectionThreads);
 
         // Defines Dialog layout
-        selectConnection.setSingleChoiceItems(adapter, 1, new DialogInterface.OnClickListener() {
+        selectConnection.setSingleChoiceItems(adapter, -1, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 selectedService = which;

@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/BtConnTest.iml" filepath="$PROJECT_DIR$/BtConnTest.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/btconn/btconn.iml" filepath="$PROJECT_DIR$/btconn/btconn.iml" />
+      <module fileurl="file:///mnt/C8346E61346E530C/Projects/AndroidStudioProjects/BtConnTest/BtConnTest.iml" filepath="/mnt/C8346E61346E530C/Projects/AndroidStudioProjects/BtConnTest/BtConnTest.iml" />
+      <module fileurl="file:///mnt/C8346E61346E530C/Projects/AndroidStudioProjects/BtConnTest/app/app.iml" filepath="/mnt/C8346E61346E530C/Projects/AndroidStudioProjects/BtConnTest/app/app.iml" />
+      <module fileurl="file:///mnt/C8346E61346E530C/Projects/AndroidStudioProjects/BtConnTest/btconn/btconn.iml" filepath="/mnt/C8346E61346E530C/Projects/AndroidStudioProjects/BtConnTest/btconn/btconn.iml" />
     </modules>
   </component>
 </project>
