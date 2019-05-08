@@ -9,6 +9,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 
 import java.io.IOException;
+import java.util.UUID;
 
 final class ClientConnectionThread extends ConnectionThread {
 
@@ -24,8 +25,8 @@ final class ClientConnectionThread extends ConnectionThread {
      * @param bluetoothListener
      * @param macAddress
      */
-    protected ClientConnectionThread(BluetoothListener bluetoothListener, String macAddress) {
-        super(bluetoothListener);
+    protected ClientConnectionThread(UUID uuid, BluetoothListener bluetoothListener, String macAddress) {
+        super(uuid, bluetoothListener);
         this.macAddress = macAddress;
     }
 
@@ -40,7 +41,7 @@ final class ClientConnectionThread extends ConnectionThread {
     protected BluetoothSocket connect() {
         try {
             BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(macAddress);
-            BluetoothSocket bluetoothSocket = device.createRfcommSocketToServiceRecord(java.util.UUID.fromString(UUID));
+            BluetoothSocket bluetoothSocket = device.createRfcommSocketToServiceRecord(uuid);
 
             bluetoothSocket.connect();
             return bluetoothSocket;

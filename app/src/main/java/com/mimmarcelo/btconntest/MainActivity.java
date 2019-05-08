@@ -124,7 +124,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 
         //Starts the BluetoothManager
-        bluetoothManager = BluetoothBuilder.build(this);
+        bluetoothManager = new BluetoothBuilder(this)
+                .setUuid("00001101-0000-1000-8000-00805F9B34FB")
+                .build();
 
         txtStatus = findViewById(R.id.txtStatus);
         edtMessage = findViewById(R.id.edtMessage);

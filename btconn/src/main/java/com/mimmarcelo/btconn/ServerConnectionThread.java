@@ -9,13 +9,14 @@ import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 
 import java.io.IOException;
+import java.util.UUID;
 
 class ServerConnectionThread extends ConnectionThread {
 
     /* ** Constructors ** */
 
-    protected ServerConnectionThread(BluetoothListener bluetoothListener) {
-        super(bluetoothListener);
+    protected ServerConnectionThread(UUID uuid, BluetoothListener bluetoothListener) {
+        super(uuid, bluetoothListener);
     }
 
     /* ** Protected methods ** */
@@ -28,7 +29,7 @@ class ServerConnectionThread extends ConnectionThread {
     @Override
     protected BluetoothSocket connect() {
         try {
-            BluetoothServerSocket serverSocket = BluetoothAdapter.getDefaultAdapter().listenUsingRfcommWithServiceRecord(APP, java.util.UUID.fromString(UUID));
+            BluetoothServerSocket serverSocket = BluetoothAdapter.getDefaultAdapter().listenUsingRfcommWithServiceRecord(APP, uuid);
             BluetoothSocket bluetoothSocket = serverSocket.accept();
             serverSocket.close();
 

@@ -18,15 +18,18 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.UUID;
 
 abstract class ConnectionThread extends Thread implements Serializable {
 
     /* ** Protected final attributes ** */
 
     //General data to the application
-    protected final String APP = "BtCpnn";
-    protected final String UUID = "00001101-0000-1000-8000-00805F9B34FB";
+    protected final String APP = "btconn";
 
+    /* ** Protected attributes ** */
+
+    protected UUID uuid;
     /* ** Private attributes ** */
 
     private BluetoothListener bluetoothListener; // Observer pattern
@@ -43,7 +46,8 @@ abstract class ConnectionThread extends Thread implements Serializable {
      *
      * @param bluetoothListener observer pattern
      */
-    protected ConnectionThread(BluetoothListener bluetoothListener) {
+    protected ConnectionThread(UUID uuid, BluetoothListener bluetoothListener) {
+        this.uuid = uuid;
         this.bluetoothListener = bluetoothListener;
         this.bluetoothSocket = null;
         this.device = null;
