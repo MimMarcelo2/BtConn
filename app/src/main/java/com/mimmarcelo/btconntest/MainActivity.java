@@ -17,14 +17,9 @@ import android.widget.TextView;
 import com.mimmarcelo.btconn.BluetoothBuilder;
 import com.mimmarcelo.btconn.BluetoothListener;
 import com.mimmarcelo.btconn.BluetoothManager;
+import com.mimmarcelo.btconn.ConnectionThread;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, BluetoothListener {
-
-    /* ** Private constants ** */
-
-//    private final int TURN_ON = 1;
-//    private final int TURN_DISCOVERABLE = 2;
-//    private final int ASK_PERMISSION = 3;
 
     /* ** Private attributes ** */
 
@@ -62,12 +57,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.btnGetConnected:
                 String deviceMsg = "";
-                for(BluetoothDevice device: bluetoothManager.getConnectedDevices()) {
-                    if (device != null) {
-                        deviceMsg += device.getName() + ":" + device.getAddress() + " connected\n";
-                    } else {
-                        deviceMsg += "empty connection\n";
-                    }
+                for(ConnectionThread conn: bluetoothManager.getConnections()) {
+                    deviceMsg += conn.getDevice().getName() + ":" + conn.getDevice().getAddress() + " connected\n";
                 }
                 if(deviceMsg.equals("")) deviceMsg = "None device connected";
                 setStatus(deviceMsg);
@@ -225,8 +216,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case BluetoothListener.DEVICE_CONNECTED:
                 if (resultCode == RESULT_OK) {
-                    BluetoothDevice d = data.getParcelableExtra(BluetoothListener.EXTRA_DEVICE);
-                    setStatus("Connected with: " + d.getName() + ":" + d.getAddress());
+                    if(data.hasExtra(BluetoothListener.EXTRA_CONNECTION)) {
+                        ConnectionThread d = (ConnectionThread)data.getSerializableExtra(BluetoothListener.EXTRA_CONNECTION);
+                        setStatus("Connected with: " + d.getDevice().getName() + ":" + d.getDevice().getAddress());
+                    }
                 } else {
                     setStatus("It was not possible establishes the connection");
                 }
@@ -251,6 +244,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case BluetoothListener.MESSAGE_RECEIVED:
                 if(data.hasExtra(BluetoothListener.EXTRA_MESSAGE)) {
                     setStatus(data.getStringExtra(BluetoothListener.EXTRA_MESSAGE));
+//                    if(data.hasExtra(BluetoothListener.EXTRA_CONNECTION)){
+//                        ConnectionThread conn = (ConnectionThread) data.getSerializableExtra(BluetoothListener.EXTRA_CONNECTION);
+//                        conn.sendMessage("Message delivered!");
+//                    }
                 }
                 break;
         } // end switch requestCode

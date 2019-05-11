@@ -14,7 +14,7 @@ public interface BluetoothListener {
     // Defines extra data names
     String EXTRA_MESSAGE = "extraMessage";
     String EXTRA_STATUS = "extraStatus";
-    String EXTRA_PARAM = "extraConnection";
+    String EXTRA_CONNECTION = "extraConnection";
     String EXTRA_DEVICE = BluetoothDevice.EXTRA_DEVICE;
 
     // Defines EXTRA_STATUS values

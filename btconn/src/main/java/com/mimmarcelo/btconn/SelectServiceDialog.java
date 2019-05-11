@@ -98,7 +98,7 @@ final class SelectServiceDialog implements BluetoothListener {
      * @param listener Observer that receivers the selected data
      * @return SelectedServiceDialog instance
      */
-    protected static SelectServiceDialog getInstance(Context context, final BluetoothListener listener) {
+    public static SelectServiceDialog getInstance(Context context, final BluetoothListener listener) {
         if (selectServiceDialog == null) {
             selectServiceDialog = new SelectServiceDialog(context, listener);
         }
@@ -112,7 +112,7 @@ final class SelectServiceDialog implements BluetoothListener {
      * Starts the discovery of BluetoothAdapter
      * Shows the AlertDialog
      */
-    protected void show() {
+    public void show() {
         bluetoothDevices.clear();
         adapter.clear();
         BluetoothBroadcast.getInstance().registerObserver(this);
@@ -132,7 +132,7 @@ final class SelectServiceDialog implements BluetoothListener {
         if(resultCode == Activity.RESULT_OK) {
             if (selectedService >= 0 && adapter.getItem(selectedService) != null) {
                 intent = new Intent();
-                intent.putExtra(BluetoothListener.EXTRA_PARAM, adapter.getItem(selectedService));
+                intent.putExtra(BluetoothListener.EXTRA_CONNECTION, adapter.getItem(selectedService));
             } else {
                 resultCode = Activity.RESULT_CANCELED;
             }

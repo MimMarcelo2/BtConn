@@ -18,23 +18,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.UUID;
 
-abstract class ConnectionThread extends Thread implements Serializable {
+public class ConnectionThread extends Thread implements Serializable {
 
-    /* ** Protected final attributes ** */
-
-    //General data to the application
-    protected final String APP = "btconn";
-
-    /* ** Protected attributes ** */
-
-    protected UUID uuid;
     /* ** Private attributes ** */
 
     private BluetoothListener bluetoothListener; // Observer pattern
     private BluetoothSocket bluetoothSocket;
-    private BluetoothDevice device;
     private InputStream input;
     private OutputStream output;
     private boolean running;
@@ -46,17 +36,24 @@ abstract class ConnectionThread extends Thread implements Serializable {
      *
      * @param bluetoothListener observer pattern
      */
-    protected ConnectionThread(UUID uuid, BluetoothListener bluetoothListener) {
-        this.uuid = uuid;
+    protected ConnectionThread(BluetoothListener bluetoothListener, BluetoothSocket bluetoothSocket) {
+        this.bluetoothSocket = bluetoothSocket;
         this.bluetoothListener = bluetoothListener;
-        this.bluetoothSocket = null;
-        this.device = null;
-        this.input = null;
-        this.output = null;
+        try {
+            this.input = bluetoothSocket.getInputStream();
+            this.output = bluetoothSocket.getOutputStream();
+            Log.i("ConnectionThread", "Connection created");
+        } catch (IOException e) {
+            Log.i("ConnectionThread", e.getMessage());
+        }
         this.running = false;
     } // end constructor ConnectionThread
 
     /* ** Public methods ** */
+
+    public boolean isRunning() {
+        return running;
+    }
 
     /**
      * Process parallel to UI to prevent the UI process freezes
@@ -64,24 +61,20 @@ abstract class ConnectionThread extends Thread implements Serializable {
      */
     @Override
     public void run() {
-        bluetoothSocket = connect();
         if (bluetoothSocket != null) {
             running = true;
-            device = bluetoothSocket.getRemoteDevice();
-            Log.i("ConnectionThread", "Device set: " + device.getName());
-
-            Intent intent = new Intent();
-            intent.putExtra(BluetoothListener.EXTRA_DEVICE, device);
-            bluetoothListener.onActivityResult(BluetoothListener.DEVICE_CONNECTED, Activity.RESULT_OK, intent);//Registers "Connected" message
-
             try {
-                input = bluetoothSocket.getInputStream();
-                output = bluetoothSocket.getOutputStream();
                 connectionLoop(); // Receive all bluetooth messages
                 cancel();
             } catch (IOException e) {
-                running = false;
+                Intent intent = new Intent();
+                intent.putExtra(BluetoothListener.EXTRA_CONNECTION, this);
+                bluetoothListener.onActivityResult(BluetoothListener.CLOSE_CONNECTION, Activity.RESULT_OK, intent);
+            } catch (Exception e){
                 e.printStackTrace();
+            }
+            finally {
+                running = false;
             }
         } // end if bluetoothSocket != null
     } // end run method
@@ -93,7 +86,7 @@ abstract class ConnectionThread extends Thread implements Serializable {
      *
      * @return BluetoothSocket with connection established
      */
-    protected abstract BluetoothSocket connect();
+//    protected abstract BluetoothSocket connect();
 
     /* ** Protected methods ** */
 
@@ -102,16 +95,9 @@ abstract class ConnectionThread extends Thread implements Serializable {
      *
      * @return connected device
      */
-    protected BluetoothDevice getDevice() {
+    public BluetoothDevice getDevice() {
         Log.i("ConnectionThread", "device required");
-        if (running) {
-            if (device == null) {
-                device = bluetoothSocket.getRemoteDevice();
-            }
-            return device;
-        } else {
-            return null;
-        }
+        return bluetoothSocket.getRemoteDevice();
     } // end getDevice method
 
     /**
@@ -119,7 +105,7 @@ abstract class ConnectionThread extends Thread implements Serializable {
      *
      * @param intent data with the message
      */
-    protected void sendMessage(Intent intent) {
+    private void sendMessage(Intent intent) {
         if (intent.hasExtra(BluetoothListener.EXTRA_MESSAGE)) {
             String message = intent.getStringExtra(BluetoothListener.EXTRA_MESSAGE);
 
@@ -143,12 +129,19 @@ abstract class ConnectionThread extends Thread implements Serializable {
         } // end if has EXTRA_MESSAGE
     } // end sendMessage method
 
+    public void sendMessage(String message){
+        Intent intent = new Intent();
+        intent.putExtra(BluetoothListener.EXTRA_MESSAGE, message);
+        sendMessage(intent);
+    }
+
     /**
      * Fineshes all class objects
      *
      * @throws IOException when some object is closed unexpectedly
      */
-    protected void cancel() throws IOException {
+    public void cancel() throws IOException {
+        running = false;
         if (input != null) {
             input.close();
             input = null;
@@ -163,8 +156,6 @@ abstract class ConnectionThread extends Thread implements Serializable {
             bluetoothSocket.close();
             bluetoothSocket = null;
         }
-
-        running = false;
     } // end cancel method
 
     /* ** Private methods ** */
@@ -195,6 +186,7 @@ abstract class ConnectionThread extends Thread implements Serializable {
         while (running) {
             bytes = input.read(buffer);
             intent.putExtra(BluetoothListener.EXTRA_MESSAGE, sanitizeString(Arrays.copyOfRange(buffer, 0, bytes)));
+            intent.putExtra(BluetoothListener.EXTRA_CONNECTION, this);
             bluetoothListener.onActivityResult(BluetoothListener.MESSAGE_RECEIVED, Activity.RESULT_OK, intent);
         }
     } // end connectionLoop method

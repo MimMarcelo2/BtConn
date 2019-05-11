@@ -79,7 +79,7 @@ final class SelectConnectionDialog {
      * @param listener Observer that receivers the selected data
      * @return SelectedConnectionDialog instance
      */
-    protected static SelectConnectionDialog getInstance(Context context, final BluetoothListener listener) {
+    public static SelectConnectionDialog getInstance(Context context, final BluetoothListener listener) {
         if (selectConnectionDialog == null) {
             selectConnectionDialog = new SelectConnectionDialog(context, listener);
         }
@@ -93,7 +93,7 @@ final class SelectConnectionDialog {
      *
      * @param connectionThreads Current connection list
      */
-    protected void show(List<ConnectionThread> connectionThreads) {
+    public void show(List<ConnectionThread> connectionThreads) {
         this.connectionThreads.clear();
         this.connectionThreads.addAll(connectionThreads);
         adapter.notifyDataSetChanged();
@@ -112,7 +112,7 @@ final class SelectConnectionDialog {
         if(resultCode == Activity.RESULT_OK) {
             if (selectedService >= 0 && adapter.getItem(selectedService) != null) {
                 intent = new Intent();
-                intent.putExtra(BluetoothListener.EXTRA_PARAM, adapter.getItem(selectedService));
+                intent.putExtra(BluetoothListener.EXTRA_CONNECTION, adapter.getItem(selectedService));
             }
             else {
                 resultCode = Activity.RESULT_CANCELED;
