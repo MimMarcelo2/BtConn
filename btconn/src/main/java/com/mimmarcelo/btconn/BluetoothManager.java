@@ -89,6 +89,11 @@ public final class BluetoothManager implements BluetoothListener {
      */
     private List<ConnectionThread> connectionThreads;
 
+    /**
+     * Enable to update list of services to connect
+     */
+    SelectItemDialog selectItemDialog;
+
     /* ** Constructors ** */
 
     /**
@@ -297,8 +302,6 @@ public final class BluetoothManager implements BluetoothListener {
         }
     } // end turnDiscoverableOn method
 
-    SelectItemDialog selectItemDialog;
-
     /**
      * Show a popup with all current connections
      * The selected connection will be closed
@@ -447,8 +450,8 @@ public final class BluetoothManager implements BluetoothListener {
                     Log.e(TAG, "Exception: ", new Throwable());
                     e.printStackTrace();
                 }
+                connectionThreads.remove(index);
             } // end if connection != null
-            connectionThreads.remove(index);
             Log.i(TAG, "Connection removed from list");
         } // end if index >= 0
     } // end stopConnection method

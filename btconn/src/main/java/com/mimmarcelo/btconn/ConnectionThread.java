@@ -87,9 +87,7 @@ public class ConnectionThread extends Thread implements BluetoothItem, Serializa
                 connectionLoop(); // Receive all bluetooth messages
                 cancel();
             } catch (IOException e) {
-                Intent intent = new Intent();
-                intent.putExtra(BluetoothListener.EXTRA_CONNECTION, this);
-                bluetoothListener.onActivityResult(BluetoothListener.CLOSE_CONNECTION, Activity.RESULT_OK, intent);
+                //Nothing to do
             } catch (Exception e){
                 e.printStackTrace();
             }
