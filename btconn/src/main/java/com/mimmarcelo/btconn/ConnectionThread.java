@@ -19,7 +19,7 @@ import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.Arrays;
 
-public class ConnectionThread extends Thread implements Serializable {
+public class ConnectionThread extends Thread implements BluetoothItem, Serializable {
 
     /* ** Private attributes ** */
 
@@ -56,6 +56,26 @@ public class ConnectionThread extends Thread implements Serializable {
     }
 
     /**
+     * Verifies and returns, if exist, the connected device
+     *
+     * @return connected device
+     */
+    public BluetoothDevice getDevice() {
+        Log.i("ConnectionThread", "device required");
+        return bluetoothSocket.getRemoteDevice();
+    } // end getDevice method
+
+    @Override
+    public String getText() {
+        return bluetoothSocket.getRemoteDevice().getName();
+    }
+
+    @Override
+    public Object getInstance() {
+        return this;
+    }
+
+    /**
      * Process parallel to UI to prevent the UI process freezes
      * Ask for the right connection type
      */
@@ -79,26 +99,7 @@ public class ConnectionThread extends Thread implements Serializable {
         } // end if bluetoothSocket != null
     } // end run method
 
-    /* ** Protected abstract methods ** */
-
-    /**
-     * Method to be override with the right way to connect
-     *
-     * @return BluetoothSocket with connection established
-     */
-//    protected abstract BluetoothSocket connect();
-
     /* ** Protected methods ** */
-
-    /**
-     * Verifies and returns, if exist, the connected device
-     *
-     * @return connected device
-     */
-    public BluetoothDevice getDevice() {
-        Log.i("ConnectionThread", "device required");
-        return bluetoothSocket.getRemoteDevice();
-    } // end getDevice method
 
     /**
      * Prepares and sends the message by Bluetooth

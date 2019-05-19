@@ -1,6 +1,6 @@
 /**
  * File name: DeviceListAdapter
- * It is an adapter to create the list of open services in the SelectServiceDialog popup
+ * It is an adapter to create the list of open services in the SelectItemDialog popup
  */
 package com.mimmarcelo.btconn;
 

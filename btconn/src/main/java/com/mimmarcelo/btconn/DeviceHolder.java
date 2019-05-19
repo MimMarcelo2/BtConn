@@ -1,6 +1,6 @@
 /**
  * File name: DeviceHolder
- * Defines a holder for the SelectServiceDialog popup list
+ * Defines a holder for the SelectItemDialog popup list
  */
 package com.mimmarcelo.btconn;
 

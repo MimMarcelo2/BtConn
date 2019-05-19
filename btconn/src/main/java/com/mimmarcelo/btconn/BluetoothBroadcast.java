@@ -34,8 +34,8 @@ final class BluetoothBroadcast extends BroadcastReceiver {
      * Allow getting different combined {@link BluetoothAdapter#ACTION_SCAN_MODE_CHANGED} states:
      *
      * <ul>
-     *     <li>When the {@link BluetoothAdapter} is turned on from off state</li>
-     *     <li>Or when the {@link BluetoothAdapter} discoverable ends</li>
+     * <li>When the {@link BluetoothAdapter} is turned on from off state</li>
+     * <li>Or when the {@link BluetoothAdapter} discoverable ends</li>
      * </ul>
      *
      * @see #onReceive(Context, Intent)
@@ -46,7 +46,7 @@ final class BluetoothBroadcast extends BroadcastReceiver {
 
     /**
      * Singleton pattern
-     *
+     * <p>
      * To get the {@link BluetoothBroadcast} instance call {@link #getInstance()}
      *
      * @see #getInstance()
@@ -54,74 +54,25 @@ final class BluetoothBroadcast extends BroadcastReceiver {
     private BluetoothBroadcast() {
         this.bluetoothListeners = new ArrayList<>();
         this.prevScanMode = 0;
-        Log.i(TAG, "A new BluetoothBroadcast was created");
-    }
-
-    /* ** Public static methods ** */
-
-    /**
-     * Singleton pattern
-     *
-     * (Create and) and return the {@link BluetoothBroadcast} instance
-     *
-     * @return The BluetoothBroadcast instance
-     */
-    public static BluetoothBroadcast getInstance() {
-        if (bluetoothBroadcast == null) {
-            bluetoothBroadcast = new BluetoothBroadcast();
-        }
-        Log.i(TAG, "A BluetoothBroadcast was returned");
-        return bluetoothBroadcast;
     }
 
     /* ** Public methods ** */
 
     /**
-     * Observer pattern
-     *
-     * Register the observers ({@link BluetoothListener}
-     *
-     * @param bluetoothListener observer to be registered
-     */
-    public void registerObserver(BluetoothListener bluetoothListener) {
-        Log.i(TAG, "Trying register a new observer");
-        if (!bluetoothListeners.contains(bluetoothListener)) {
-            bluetoothListeners.add(bluetoothListener);
-            Log.i(TAG, "A new Observer was registered");
-        }
-    }
-
-    /**
-     * Observer pattern
-     *
-     * Unregister the observers ({@link BluetoothListener}
-     *
-     * @param bluetoothListener observer to be unregistered
-     */
-    public void unregisterObserver(BluetoothListener bluetoothListener) {
-        Log.i(TAG, "Trying unregister a observer");
-        if (bluetoothListeners.contains(bluetoothListener)) {
-            bluetoothListeners.remove(bluetoothListener);
-            Log.i(TAG, "A Observer was unregistered");
-        }
-    }
-
-    /**
      * This method is called when the BroadcastReceiver is receiving an Intent broadcast.
-     *
+     * <p>
      * The Intent filters used in {@link android.content.Context#registerReceiver} are
      * registered in {@link BluetoothManager#setActivity(Activity)} and are:
      *
      * <ul>
-     *     <li>{@link BluetoothAdapter#ACTION_SCAN_MODE_CHANGED}</li>
-     *     <li>{@link BluetoothDevice#ACTION_FOUND}</li>
-     *     <li>{@link BluetoothDevice#ACTION_ACL_CONNECTED}</li>
-     *     <li>{@link BluetoothDevice#ACTION_ACL_DISCONNECTED}</li>
+     * <li>{@link BluetoothAdapter#ACTION_SCAN_MODE_CHANGED}</li>
+     * <li>{@link BluetoothDevice#ACTION_FOUND}</li>
+     * <li>{@link BluetoothDevice#ACTION_ACL_CONNECTED}</li>
+     * <li>{@link BluetoothDevice#ACTION_ACL_DISCONNECTED}</li>
      * </ul>
      *
      * @param context The Context in which the receiver is running.
-     * @param intent The Intent being received.
-     *
+     * @param intent  The Intent being received.
      * @see BluetoothManager#setActivity(Activity)
      * @see BroadcastReceiver#onReceive(Context, Intent)
      * @see BluetoothAdapter#ACTION_SCAN_MODE_CHANGED
@@ -133,11 +84,9 @@ final class BluetoothBroadcast extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         int requestCode = BluetoothListener.NO_ACTION; // Request code to be send to observers
 
-        Log.i(TAG, "Action received");
-        switch (intent.getAction()){
+        switch (intent.getAction()) {
             case BluetoothAdapter.ACTION_SCAN_MODE_CHANGED: // Read changes in BluetoothAdapter
                 int scanMode = intent.getIntExtra(BluetoothAdapter.EXTRA_SCAN_MODE, BluetoothAdapter.SCAN_MODE_NONE);
-                Log.i(TAG, "ACTION_SCAN_MODE_CHANGED");
 
                 switch (scanMode) {
                     case BluetoothAdapter.SCAN_MODE_CONNECTABLE:
@@ -157,8 +106,8 @@ final class BluetoothBroadcast extends BroadcastReceiver {
                         requestCode = BluetoothListener.TURN_DISCOVERABLE_ON;
                         Log.i(TAG, "Discoverable turned on");
                         break;
-                        default:
-                            Log.i(TAG, "Status '"+scanMode+"' not tested");
+                    default:
+                        Log.i(TAG, "Status '" + scanMode + "' not tested");
                 } // end switch scanMode
 
                 prevScanMode = scanMode; // Register this scan mode
@@ -182,7 +131,56 @@ final class BluetoothBroadcast extends BroadcastReceiver {
         // Send data to observers
         for (BluetoothListener bluetoothListener : bluetoothListeners) {
             bluetoothListener.onActivityResult(requestCode, Activity.RESULT_OK, intent);
-            Log.i(TAG, "Data sent to observer");
         }
     } // end onReceive method
+
+    /* ** Protected static methods ** */
+
+    /**
+     * Singleton pattern
+     * <p>
+     * (Create and) and return the {@link BluetoothBroadcast} instance
+     * </p>
+     *
+     * @return The BluetoothBroadcast instance
+     */
+    protected static BluetoothBroadcast getInstance() {
+        if (bluetoothBroadcast == null) {
+            bluetoothBroadcast = new BluetoothBroadcast();
+        }
+        return bluetoothBroadcast;
+    }
+
+    /* ** Protected methods ** */
+
+    /**
+     * Observer pattern
+     * <p>
+     * Register the observers ({@link BluetoothListener}
+     * </p>
+     *
+     * @param bluetoothListener observer to be registered
+     */
+    protected void registerObserver(BluetoothListener bluetoothListener) {
+        Log.i(TAG, "Trying register a new observer");
+        if (!bluetoothListeners.contains(bluetoothListener)) {
+            bluetoothListeners.add(bluetoothListener);
+            Log.i(TAG, "A new Observer was registered");
+        }
+    }
+
+    /**
+     * Observer pattern
+     * <p>
+     * Unregister the observers ({@link BluetoothListener}
+     *
+     * @param bluetoothListener observer to be unregistered
+     */
+    protected void unregisterObserver(BluetoothListener bluetoothListener) {
+        Log.i(TAG, "Trying unregister a observer");
+        if (bluetoothListeners.contains(bluetoothListener)) {
+            bluetoothListeners.remove(bluetoothListener);
+            Log.i(TAG, "A Observer was unregistered");
+        }
+    }
 } // end BluetoothBroadcast class

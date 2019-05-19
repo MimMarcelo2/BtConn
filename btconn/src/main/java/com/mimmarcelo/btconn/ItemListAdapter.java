@@ -1,5 +1,5 @@
 /**
- * File name: ConnectionListAdapter
+ * File name: ItemListAdapter
  * It is an adapter to create the list of current connections in the SelectConnectionDialog popup
  */
 package com.mimmarcelo.btconn;
@@ -13,15 +13,15 @@ import android.widget.TextView;
 
 import java.util.List;
 
-final class ConnectionListAdapter extends ArrayAdapter<ConnectionThread> {
+final class ItemListAdapter extends ArrayAdapter<BluetoothItem> {
 
     /* ** Private attibutes ** */
 
-    private List<ConnectionThread> connections;
+    private List<BluetoothItem> connections;
 
     /* ** Constructors ** */
 
-    public ConnectionListAdapter(Context context, List<ConnectionThread> connections) {
+    public ItemListAdapter(Context context, List<BluetoothItem> connections) {
         super(context, android.R.layout.simple_list_item_single_choice, connections);
         this.connections = connections;
     }
@@ -38,7 +38,7 @@ final class ConnectionListAdapter extends ArrayAdapter<ConnectionThread> {
      */
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        ConnectionThread connection = connections.get(position);
+        BluetoothItem connection = connections.get(position);
         DeviceHolder holder;
 
         // if the item list view was not created yet
@@ -56,16 +56,16 @@ final class ConnectionListAdapter extends ArrayAdapter<ConnectionThread> {
             holder = (DeviceHolder) convertView.getTag();
         }
 
-        holder.setText(connection.getDevice().getName());
+        holder.setText(connection.getText());
         return convertView;
     } // end of getView method
 
     @Override
-    public ConnectionThread getItem(int position) {
+    public BluetoothItem getItem(int position) {
         try {
             return super.getItem(position);
         } catch (IndexOutOfBoundsException e) {
             return null;
         }
     } // end getItem method
-} // end ConnectionListAdapter class
+} // end ItemListAdapter class
