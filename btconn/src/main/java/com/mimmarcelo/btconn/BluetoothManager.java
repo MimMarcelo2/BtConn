@@ -13,12 +13,15 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.ParcelUuid;
+import android.os.Parcelable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -349,7 +352,8 @@ public final class BluetoothManager implements BluetoothListener {
         switch (requestCode) {
             case DEVICE_FOUND:
                 if (data.hasExtra(BluetoothDevice.EXTRA_DEVICE)) {
-                    selectItemDialog.update(new BluetoothItemAdapter((BluetoothDevice) data.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)));
+                    BluetoothDevice d = data.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                    selectItemDialog.update(new BluetoothItemAdapter(d));
                 }
                 break;
             case TURN_DISCOVERABLE_ON:

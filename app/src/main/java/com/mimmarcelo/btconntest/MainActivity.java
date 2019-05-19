@@ -116,7 +116,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //Starts the BluetoothManager
         bluetoothManager = new BluetoothBuilder(this)
-                .setUuid("00001101-0000-1000-8000-00805F9B34FB")
+                .setUuid("eca150a0-10c2-4082-a1f4-f36e20f9cbd2")
                 .build();
 
         txtStatus = findViewById(R.id.txtStatus);
