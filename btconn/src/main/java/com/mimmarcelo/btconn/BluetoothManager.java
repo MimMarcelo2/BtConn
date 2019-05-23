@@ -13,15 +13,12 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.os.ParcelUuid;
-import android.os.Parcelable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -90,7 +87,7 @@ public final class BluetoothManager implements BluetoothListener {
     /**
      * List of all activated connections
      */
-    private List<ConnectionThread> connectionThreads;
+    private List<ConnectedThread> connectedThreads;
 
     /**
      * Enable to update list of services to connect
@@ -121,7 +118,7 @@ public final class BluetoothManager implements BluetoothListener {
         this.bluetoothBroadcast = BluetoothBroadcast.getInstance();
         this.bluetoothBroadcast.registerObserver(this);
 
-        this.connectionThreads = new ArrayList<>();
+        this.connectedThreads = new ArrayList<>();
         Log.i(TAG, "A new BluetoothManager was created");
     } // end constructor BluetoothManager
 
@@ -161,7 +158,7 @@ public final class BluetoothManager implements BluetoothListener {
      */
     public List<BluetoothDevice> getConnectedDevices() {
         List<BluetoothDevice> devices = new ArrayList<>();
-        for (ConnectionThread conn : getConnections()) {
+        for (ConnectedThread conn : getConnections()) {
             devices.add(conn.getDevice());
         }
         Log.i(TAG, "List of connected devices required");
@@ -312,7 +309,7 @@ public final class BluetoothManager implements BluetoothListener {
     public void selectConnectionToClose() {
         if (getConnections().size() > 0) {
             Log.i(TAG, "Asking to select connection to be closed");
-            new SelectItemDialog(activity, this, (List<BluetoothItem>) (List<?>) connectionThreads, CLOSE_CONNECTION);
+            new SelectItemDialog(activity, this, (List<BluetoothItem>) (List<?>) connectedThreads, CLOSE_CONNECTION);
         } else {
             Log.i(TAG, "There is no connection to be closed");
             onActivityResult(CLOSE_CONNECTION, NO_CONNECTIONS, null);
@@ -326,18 +323,18 @@ public final class BluetoothManager implements BluetoothListener {
      */
     public void sendMessage(String message) {
         Log.i(TAG, "Sending message: " + message);
-        for (ConnectionThread conn : connectionThreads) {
+        for (ConnectedThread conn : connectedThreads) {
             conn.sendMessage(message);
         }
     } // end sendMessage method
 
-    public void sendMessage(String message, ConnectionThread conn) {
+    public void sendMessage(String message, ConnectedThread conn) {
         Log.i(TAG, "Sending message: " + message);
         conn.sendMessage(message);
     }
 
     public void sendMessage(String message, int connIndex) {
-        sendMessage(message, connectionThreads.get(connIndex));
+        sendMessage(message, connectedThreads.get(connIndex));
     }
 
     /**
@@ -363,9 +360,9 @@ public final class BluetoothManager implements BluetoothListener {
             case DEVICE_CONNECTED:
                 if (resultCode == Activity.RESULT_OK) {
                     if (data.hasExtra(EXTRA_CONNECTION)) {
-                        ConnectionThread conn = (ConnectionThread) data.getSerializableExtra(EXTRA_CONNECTION);
+                        ConnectedThread conn = (ConnectedThread) data.getSerializableExtra(EXTRA_CONNECTION);
                         conn.start();
-                        connectionThreads.add(conn);
+                        connectedThreads.add(conn);
                     }
                 }
                 break;
@@ -384,7 +381,7 @@ public final class BluetoothManager implements BluetoothListener {
             case CLOSE_CONNECTION:
                 // Finish the selected connection
                 if (resultCode == Activity.RESULT_OK) {
-                    stopConnection(connectionThreads.indexOf(data.getSerializableExtra(BluetoothListener.EXTRA_CONNECTION)));
+                    stopConnection(connectedThreads.indexOf(data.getSerializableExtra(BluetoothListener.EXTRA_CONNECTION)));
                     Log.i(TAG, "Closing connection");
                 }
                 break;
@@ -410,31 +407,31 @@ public final class BluetoothManager implements BluetoothListener {
      *
      * @return Connections list
      */
-    public List<ConnectionThread> getConnections() {
+    public List<ConnectedThread> getConnections() {
         stopUnutilizedConnections();
         Log.i(TAG, "List of connections required");
-        return connectionThreads;
+        return connectedThreads;
     }
 
     /**
      * Starts a new thread for connection as a Bluetooth server
-     * and adds to connectionThreads list
+     * and adds to connectedThreads list
      */
     private void openService() {
-        ServerThread conn = new ServerThread(uuid, this);
+        ConnectionThread conn = new ConnectionThread(uuid, this);
         Log.i(TAG, "Server thread started");
         conn.start();
     }
 
     /**
      * If exists some connection, stops it
-     * Starts a new thread for connection as a Bluetooth client and adds to connectionThreads list
+     * Starts a new thread for connection as a Bluetooth client and adds to connectedThreads list
      *
      * @param macAddress MAC address from Bluetooth server
      */
     private void connect(String macAddress) {
 //        stopAllConnections();
-        ClientThread client = new ClientThread(uuid, this, macAddress);
+        ConnectionThread client = new ConnectionThread(uuid, this, macAddress);
         client.start();
         Log.i(TAG, "Client thread started");
     } // end connect method
@@ -444,9 +441,9 @@ public final class BluetoothManager implements BluetoothListener {
      */
     private void stopConnection(int index) {
         if (index >= 0) {
-            if (connectionThreads.get(index) != null) {
+            if (connectedThreads.get(index) != null) {
                 try {
-                    ConnectionThread conn = connectionThreads.get(index);
+                    ConnectedThread conn = connectedThreads.get(index);
                     conn.cancel();
                     conn.interrupt();
                     Log.i(TAG, "Connection closed");
@@ -454,7 +451,7 @@ public final class BluetoothManager implements BluetoothListener {
                     Log.e(TAG, "Exception: ", new Throwable());
                     e.printStackTrace();
                 }
-                connectionThreads.remove(index);
+                connectedThreads.remove(index);
             } // end if connection != null
             Log.i(TAG, "Connection removed from list");
         } // end if index >= 0
@@ -464,8 +461,8 @@ public final class BluetoothManager implements BluetoothListener {
      * Stops the all connections
      */
     private void stopAllConnections() {
-        if (connectionThreads != null) {
-            for (int index = connectionThreads.size() - 1; index >= 0; index--) {
+        if (connectedThreads != null) {
+            for (int index = connectedThreads.size() - 1; index >= 0; index--) {
                 stopConnection(index);
             }
         }
@@ -475,8 +472,8 @@ public final class BluetoothManager implements BluetoothListener {
      * Stops only connections that have no for where send messages
      */
     private void stopUnutilizedConnections() {
-        for (int index = connectionThreads.size() - 1; index >= 0; index--) {
-            if (connectionThreads.get(index).getDevice() == null || !connectionThreads.get(index).isRunning()) {
+        for (int index = connectedThreads.size() - 1; index >= 0; index--) {
+            if (connectedThreads.get(index).getDevice() == null || !connectedThreads.get(index).isRunning()) {
                 stopConnection(index);
             }
         }

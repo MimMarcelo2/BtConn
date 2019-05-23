@@ -17,7 +17,7 @@ import android.widget.TextView;
 import com.mimmarcelo.btconn.BluetoothBuilder;
 import com.mimmarcelo.btconn.BluetoothListener;
 import com.mimmarcelo.btconn.BluetoothManager;
-import com.mimmarcelo.btconn.ConnectionThread;
+import com.mimmarcelo.btconn.ConnectedThread;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, BluetoothListener {
 
@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.btnGetConnected:
                 String deviceMsg = "";
-                for(ConnectionThread conn: bluetoothManager.getConnections()) {
+                for(ConnectedThread conn: bluetoothManager.getConnections()) {
                     deviceMsg += conn.getDevice().getName() + ":" + conn.getDevice().getAddress() + " connected\n";
                 }
                 if(deviceMsg.equals("")) deviceMsg = "None device connected";
@@ -217,7 +217,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case BluetoothListener.DEVICE_CONNECTED:
                 if (resultCode == RESULT_OK) {
                     if(data.hasExtra(BluetoothListener.EXTRA_CONNECTION)) {
-                        ConnectionThread d = (ConnectionThread)data.getSerializableExtra(BluetoothListener.EXTRA_CONNECTION);
+                        ConnectedThread d = (ConnectedThread)data.getSerializableExtra(BluetoothListener.EXTRA_CONNECTION);
                         setStatus("Connected with: " + d.getDevice().getName() + ":" + d.getDevice().getAddress());
                     }
                 } else {
@@ -245,7 +245,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if(data.hasExtra(BluetoothListener.EXTRA_MESSAGE)) {
                     setStatus(data.getStringExtra(BluetoothListener.EXTRA_MESSAGE));
 //                    if(data.hasExtra(BluetoothListener.EXTRA_CONNECTION)){
-//                        ConnectionThread conn = (ConnectionThread) data.getSerializableExtra(BluetoothListener.EXTRA_CONNECTION);
+//                        ConnectedThread conn = (ConnectedThread) data.getSerializableExtra(BluetoothListener.EXTRA_CONNECTION);
 //                        conn.sendMessage("Message delivered!");
 //                    }
                 }
