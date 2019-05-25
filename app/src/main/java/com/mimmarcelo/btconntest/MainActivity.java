@@ -23,7 +23,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     /* ** Private attributes ** */
 
-    private BluetoothManager bluetoothManager; // Observer Pattern
+    /**
+     * Responsible to manage the Bluetooth connections
+     * <p>
+     *     It works like a broadcast that receives changes from Bluetooth behavior
+     *     and sends responses to {@link BluetoothListener#onActivityResult(int, int, Intent)}
+     * </p>
+     */
+    private BluetoothManager bluetoothManager;
+
+    //Layout components
     private TextView txtStatus;
     private AppCompatEditText edtMessage;
 
@@ -32,7 +41,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     /**
      * Defines the behavior of each click button
      *
-     * @param v view correspondent to clicked button
+     * @param v view correspondent clicked button
      */
     @Override
     public void onClick(View v) {
@@ -77,89 +86,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     } // end onClick method
 
     /**
-     * Receivers the answer from required permission
-     * And performs how to work on each result
-     *
-     * @param requestCode  Code to identify when asking some permission
-     *                     In BtConn library it happens on searchForServices method
-     * @param permissions  List od permissions required
-     * @param grantResults list of status to each permission required
-     */
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        switch (requestCode) {
-            case BluetoothListener.PERMISSION_REQUIRED:
-                // Permission denied
-                if (!(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                    setStatus("Permission denied");
-                } else {
-                    //if enabled, it is possible keep with the process
-                    setStatus("Permission enabled");
-                    bluetoothManager.searchForServices();
-                }
-                break; // end ASK_PERMISSION case
-
-        } // end switch requestCode
-    } // end onRequestPermissionResult method
-
-    /* ** Protected methods ** */
-
-    /**
-     * Starts the Activity atributs and behaviours
-     *
-     * @param savedInstanceState data to reload the Activity
-     */
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        //Starts the BluetoothManager
-        bluetoothManager = new BluetoothBuilder(this)
-                .setUuid("eca150a0-10c2-4082-a1f4-f36e20f9cbd2")
-                .build();
-
-        txtStatus = findViewById(R.id.txtStatus);
-        edtMessage = findViewById(R.id.edtMessage);
-
-        //Sets buttons behaviours
-        AppCompatButton btn = findViewById(R.id.btnTurnOn);
-        btn.setOnClickListener(this);
-
-        btn = findViewById(R.id.btnTurnOff);
-        btn.setOnClickListener(this);
-
-        btn = findViewById(R.id.btnShowDeviceName);
-        btn.setOnClickListener(this);
-
-        btn = findViewById(R.id.btnOpenService);
-        btn.setOnClickListener(this);
-
-        btn = findViewById(R.id.btnSearchService);
-        btn.setOnClickListener(this);
-
-        btn = findViewById(R.id.btnGetConnected);
-        btn.setOnClickListener(this);
-
-        btn = findViewById(R.id.btnCloseConnection);
-        btn.setOnClickListener(this);
-
-        btn = findViewById(R.id.btnSendMessage);
-        btn.setOnClickListener(this);
-
-        //Verifies if the Bluetooth is enabled
-        if (bluetoothManager.getBluetoothAdapter().isEnabled()) {
-            setStatus("Bluetooth on");
-        } else {
-            setStatus("Bluetooth off");
-        }
-    } // end onCreate method
-
-    /**
-     * Receivers the answers from others activities called
-     * In the BtConn this happens when:
-     * - turn Bluetooth on
-     * - turn discoverable (open service)
+     * Receivers the answers from others called activities and, in this case, receives the calls
+     * from btconn library.
+     * <p>
+     *     In the BtConn this happens with all following requestCodes:
+     *     <ul>
+     *         <li>{@link BluetoothListener#TURN_BLUETOOTH_ON}</li>
+     *         <li>{@link BluetoothListener#TURN_BLUETOOTH_OFF}</li>
+     *         <li>{@link BluetoothListener#TURN_DISCOVERABLE_ON}</li>
+     *         <li>{@link BluetoothListener#TURN_DISCOVERABLE_OFF}</li>
+     *         <li>{@link BluetoothListener#TURN_SEARCHING_ON}</li>
+     *         <li>{@link BluetoothListener#DEVICE_FOUND}</li>
+     *         <li>{@link BluetoothListener#DEVICE_SELECTED}</li>
+     *         <li>{@link BluetoothListener#DEVICE_CONNECTED}</li>
+     *         <li>{@link BluetoothListener#DEVICE_DISCONNECTED}</li>
+     *         <li>{@link BluetoothListener#CLOSE_CONNECTION}</li>
+     *         <li>{@link BluetoothListener#MESSAGE_RECEIVED}</li>
+     *     </ul>
+     * </p>
      *
      * @param requestCode Code number to identify the request
      * @param resultCode  Status code returned from called activity
@@ -253,9 +197,110 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } // end switch requestCode
     } // end sendError method
 
+    /**
+     * Receivers the answer from required permission
+     * and performs how to work on each result
+     *
+     * <p>
+     *     This method is called by btconn <em>only when it needs</em> to look for open services
+     *     <em>and</em> the device version is greater than 6 {@link android.os.Build.VERSION_CODES#M}
+     * </p>
+     *
+     * @param requestCode  Code to identify when asking some permission
+     *                     In BtConn library it happens on searchForServices method
+     * @param permissions  List od permissions required
+     * @param grantResults list of status to each permission required
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        switch (requestCode) {
+            case BluetoothListener.PERMISSION_REQUIRED:
+                // Permission denied
+                if (!(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    setStatus("Permission denied");
+                } else {
+                    //if enabled, it is possible keep with the process
+                    setStatus("Permission enabled");
+                    bluetoothManager.searchForServices();
+                }
+                break; // end ASK_PERMISSION case
+
+        } // end switch requestCode
+    } // end onRequestPermissionResult method
+
+    /* ** Protected methods ** */
+
+    /**
+     * Starts the Activity attrs and behaviours
+     *
+     * <p>
+     *     It is recommended to build the {@link BluetoothManager} at this moment
+     * </p>
+     * @param savedInstanceState data to reload the Activity
+     */
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        //Starts the BluetoothManager
+        bluetoothManager = new BluetoothBuilder(this)
+                .setUuid("eca150a0-10c2-4082-a1f4-f36e20f9cbd2")
+                .build();
+
+        txtStatus = findViewById(R.id.txtStatus);
+        edtMessage = findViewById(R.id.edtMessage);
+
+        //Sets buttons behaviours
+        AppCompatButton btn = findViewById(R.id.btnTurnOn);
+        btn.setOnClickListener(this);
+
+        btn = findViewById(R.id.btnTurnOff);
+        btn.setOnClickListener(this);
+
+        btn = findViewById(R.id.btnShowDeviceName);
+        btn.setOnClickListener(this);
+
+        btn = findViewById(R.id.btnOpenService);
+        btn.setOnClickListener(this);
+
+        btn = findViewById(R.id.btnSearchService);
+        btn.setOnClickListener(this);
+
+        btn = findViewById(R.id.btnGetConnected);
+        btn.setOnClickListener(this);
+
+        btn = findViewById(R.id.btnCloseConnection);
+        btn.setOnClickListener(this);
+
+        btn = findViewById(R.id.btnSendMessage);
+        btn.setOnClickListener(this);
+
+        //Verifies if the Bluetooth is enabled
+        if (bluetoothManager.getBluetoothAdapter().isEnabled()) {
+            setStatus("Bluetooth on");
+        } else {
+            setStatus("Bluetooth off");
+        }
+    } // end onCreate method
+
+    /**
+     * Calls the {@link BluetoothManager#destroy()} method
+     *
+     * <p>
+     *     It's necessary to close open connection and unregister the broadcast
+     * </p>
+     */
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        bluetoothManager.destroy();
+    }
+
     /* ** Private methods ** */
 
     private void setStatus(String message) {
         txtStatus.setText(message);
     }
+
 } // end MainActivity class

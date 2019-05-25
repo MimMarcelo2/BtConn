@@ -24,6 +24,8 @@ import java.util.UUID;
 
 public final class BluetoothManager implements BluetoothListener {
 
+    /* ** Constants ** */
+
     private static final String TAG = BluetoothManager.class.getName();
 
     /* ** Private static attributes ** */
@@ -34,11 +36,13 @@ public final class BluetoothManager implements BluetoothListener {
 
     /**
      * Activity that will receive all {@link BluetoothListener#onActivityResult(int, int, Intent)}
-     * calls. It works as an observer when Bluetooth Adapter changes.
+     * calls. It works as an observer when Bluetooth behaviour changes.
+     *
      * <p>
-     * It is defined in {@link BluetoothBuilder#BluetoothBuilder(Activity, UUID)}
-     * or in {@link BluetoothBuilder#BluetoothBuilder(Activity)}
-     * or in {@link #setActivity(Activity)} method
+     *     It is defined in {@link BluetoothBuilder#BluetoothBuilder(Activity, UUID)}
+     *     or in {@link BluetoothBuilder#BluetoothBuilder(Activity)}
+     *     or in {@link #setActivity(Activity)} method
+     * </p>
      *
      * @see BluetoothListener#onActivityResult(int, int, Intent)
      * @see BluetoothBuilder#BluetoothBuilder(Activity, UUID)
@@ -48,12 +52,14 @@ public final class BluetoothManager implements BluetoothListener {
     private Activity activity;
 
     /**
-     * The Universally Unique Identifier for application.
+     * The Universally Unique Identifier for the application.
+     *
      * <p>
-     * It is a number that identifies uniquely the application,
-     * this way, only applications with the same uuid can
-     * establishes Bluetooth connection
-     * <p>
+     *     It is a number that identifies uniquely the application on the network,
+     *     this way, only applications with the same {@link UUID} can
+     *     establishes Bluetooth connection
+     * </p>
+     *
      * It is defined in {@link BluetoothBuilder#BluetoothBuilder(Activity, UUID)}
      * or in {@link BluetoothBuilder#setUuid(UUID)}
      * or in {@link BluetoothBuilder#setUuid(String)}
@@ -67,20 +73,24 @@ public final class BluetoothManager implements BluetoothListener {
      * @see #setUuid(String)
      */
     private UUID uuid;
+
     /**
      * Broadcast to listen to {@link BluetoothAdapter} changes
      * Need to be registered in active Activity (Context)
-     * <p>
-     * It is created in {@link #setActivity(Activity)}
      *
+     * <p>
+     *     It is managed in {@link #setActivity(Activity)}
+     * </p>
      * @see #setActivity(Activity)
      */
     private BluetoothBroadcast bluetoothBroadcast;
 
     /**
      * Define what events the {@link #bluetoothBroadcast} may listen to
+     *
      * <p>
-     * It is set in {@link #BluetoothManager()}
+     *     It is set in {@link #BluetoothManager()}
+     * </p>
      */
     private IntentFilter filter;
 
@@ -90,7 +100,7 @@ public final class BluetoothManager implements BluetoothListener {
     private List<ConnectedThread> connectedThreads;
 
     /**
-     * Enable to update list of services to connect
+     * Create and manage popups to the application
      */
     SelectItemDialog selectItemDialog;
 
@@ -98,17 +108,19 @@ public final class BluetoothManager implements BluetoothListener {
 
     /**
      * Singleton pattern
+     *
      * <p>
-     * Create a {@link BluetoothManager} instance, but it is accessible
-     * only in own scope.
-     * <p>
+     *     Create a {@link BluetoothManager} instance, but it is accessible
+     *     only inner btconn library.
+     * </p>
+     *
      * It is called, <em>if not exists,</em> in {@link #getInstance()}
      *
      * @see #getInstance()
      */
     private BluetoothManager() {
 
-        //Set for Broadcast listen to
+        //Set what Broadcast may listen to
         this.filter = new IntentFilter();
         this.filter.addAction(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED);
         this.filter.addAction(BluetoothDevice.ACTION_FOUND);
@@ -119,16 +131,18 @@ public final class BluetoothManager implements BluetoothListener {
         this.bluetoothBroadcast.registerObserver(this);
 
         this.connectedThreads = new ArrayList<>();
-        Log.i(TAG, "A new BluetoothManager was created");
+        Log.i(TAG, "New BluetoothManager created");
     } // end constructor BluetoothManager
 
     /* ** Public static methods ** */
 
     /**
      * Singleton pattern
+     *
      * <p>
-     * (Create and) return a {@link BluetoothManager} instance
-     * <p>
+     *     (Create and) return a {@link BluetoothManager} instance
+     * </p>
+     *
      * It is called in {@link BluetoothBuilder#build()}
      *
      * @return The {@link BluetoothManager} instance
@@ -137,8 +151,19 @@ public final class BluetoothManager implements BluetoothListener {
         if (bluetoothManager == null) {
             bluetoothManager = new BluetoothManager();
         }
-        Log.i(TAG, "A BluetoothManager was returned");
+        Log.i(TAG, "BluetoothManager required");
         return bluetoothManager;
+    }
+
+    /**
+     * Stop all process involving btconn library
+     */
+    public void destroy(){
+        bluetoothBroadcast.unregisterObserver(this);
+        activity.unregisterReceiver(bluetoothBroadcast);
+        stopAllConnections();
+        bluetoothManager = null;
+        Log.i(TAG, "BluetoothManager removed from activity");
     }
 
     /* ** Public methods ** */
@@ -147,27 +172,27 @@ public final class BluetoothManager implements BluetoothListener {
      * @return The BluetoothAdapter
      */
     public BluetoothAdapter getBluetoothAdapter() {
-        Log.i(TAG, "BluetoothAdapter was required");
+        Log.i(TAG, "BluetoothAdapter required");
         return BluetoothAdapter.getDefaultAdapter();
     }
 
     /**
-     * Returns a list of all connected devices
-     *
-     * @return devices list
+     * @return The registred Activity
      */
-    public List<BluetoothDevice> getConnectedDevices() {
-        List<BluetoothDevice> devices = new ArrayList<>();
-        for (ConnectedThread conn : getConnections()) {
-            devices.add(conn.getDevice());
-        }
-        Log.i(TAG, "List of connected devices required");
-        return devices;
-    } // end getConnectedDevices method
-
     public Activity getActivity() {
         Log.i(TAG, "Activity required");
         return activity;
+    }
+
+    /**
+     * Return a list of current connections
+     *
+     * @return Connections list
+     */
+    public List<ConnectedThread> getConnections() {
+        stopUnutilizedConnections();
+        Log.i(TAG, "List of connections required");
+        return connectedThreads;
     }
 
     /**
@@ -178,9 +203,8 @@ public final class BluetoothManager implements BluetoothListener {
     public void setActivity(Activity activity) {
         if (activity != null) {
             if (activity instanceof BluetoothListener) {
-                /*
-                 * If exist a previous Activity, unregister the BluetoothBroadcast
-                 */
+
+                // If exist a previous Activity, unregister the BluetoothBroadcast
                 if (this.activity != null) {
                     Log.i(TAG, "BluetoothBroadcast unregistered from previous Activity");
                     this.activity.unregisterReceiver(bluetoothBroadcast);
@@ -188,7 +212,6 @@ public final class BluetoothManager implements BluetoothListener {
                 this.activity = activity;
                 this.activity.registerReceiver(bluetoothBroadcast, filter);
                 Log.i(TAG, "Activity updated");
-
             } // end if activity instanceof BluetoothListener
             else {
                 Log.e(TAG, "Activity needs to be a instance of BluetoothListener", new Throwable());
@@ -199,23 +222,40 @@ public final class BluetoothManager implements BluetoothListener {
         }
     } // end setActivity method
 
+    /**
+     * Set or update the {@link UUID} connection number
+     *
+     * @param uuid
+     */
     public void setUuid(UUID uuid) {
         Log.i(TAG, "UUID updated");
         this.uuid = uuid;
     }
 
+    /**
+     * Convert a {@link String} to {@link UUID}, so
+     * set or update the {@link UUID} connection number
+     *
+     * @param uuid
+     */
     public void setUuid(String uuid) {
         setUuid(UUID.fromString(uuid));
     }
 
     /**
      * Show popup asking permission to enable Bluetooth
+     *
      * <p>
-     * The answer can be caught on {@link BluetoothListener#onActivityResult(int, int, Intent)}
+     *     The answer can be caught on {@link BluetoothListener#onActivityResult(int, int, Intent)}
+     * </p>
+     *
      * Possible resultCode:
-     * {@link Activity#RESULT_OK} when the bluetooth is turned on
-     * {@link Activity#RESULT_CANCELED} when the user cancels the operation
-     * {@link BluetoothListener#BLUETOOTH_ALREADY_ON} when the Bluetooth is already on
+     *
+     * <ul>
+     *     <li>{@link Activity#RESULT_OK} when the bluetooth is turned on successfully</li>
+     *     <li>{@link Activity#RESULT_CANCELED} when the user cancels the operation</li>
+     *     <li>{@link BluetoothListener#BLUETOOTH_ALREADY_ON} when the Bluetooth is already on</li>
+     * </ul>
      */
     public void turnBluetoothOn() {
         if (getBluetoothAdapter().isEnabled()) {
@@ -230,11 +270,17 @@ public final class BluetoothManager implements BluetoothListener {
 
     /**
      * Turn Bluetooth off
+     *
      * <p>
-     * The answer can be caught on {@link BluetoothListener#onActivityResult(int, int, Intent)}
+     *     The answer can be caught on {@link BluetoothListener#onActivityResult(int, int, Intent)}
+     * </p>
+     *
      * Possible resultCode:
-     * {@link Activity#RESULT_OK} when the bluetooth is turned off
-     * {@link BluetoothListener#BLUETOOTH_ALREADY_OFF} when the Bluetooth is already off
+     *
+     * <ul>
+     *     <li>{@link Activity#RESULT_OK} when the bluetooth is turned off</li>
+     *     <li>{@link BluetoothListener#BLUETOOTH_ALREADY_OFF} when the Bluetooth is already off</li>
+     * </ul>
      */
     public void turnBluetoothOff() {
         if (getBluetoothAdapter().isEnabled()) {
@@ -248,19 +294,20 @@ public final class BluetoothManager implements BluetoothListener {
     } // end turnBluetoothOff method
 
     /**
-     * Verify if there are activated connections,
-     * If there are and it is a Client connection
-     * - Send status error message CONNECTED_AS_CLIENT_CANNOT_BE_A_SERVER
-     * If there are no connection activated, or the connections are Server connection
-     * - Show popup asking permission to enable discovering
-     * <p>
-     * The answer can be caught on {@link BluetoothListener#onActivityResult(int, int, Intent)}
-     * Possible resultCode:
-     * {@link Activity#RESULT_OK} when the bluetooth is turned off
-     * {@link Activity#RESULT_CANCELED} when the user cancels the operation
-     * {@link BluetoothListener#CONNECTED_AS_CLIENT_CANNOT_BE_A_SERVER} when there is a client connection
+     * Show popup asking permission to enable discovering
      *
-     * @param seconds Time for discovering
+     * <p>
+     *     The answer can be caught on {@link BluetoothListener#onActivityResult(int, int, Intent)}
+     * </p>
+     *
+     * Possible resultCode:
+     *
+     * <ul>
+     *     <li>{@link Activity#RESULT_OK} when the bluetooth is turned off</li>
+     *     <li>{@link Activity#RESULT_CANCELED} when the user cancels the operation</li>
+     * </ul>
+     *
+     * @param seconds Time <em>,in seconds,</em> for discovering
      */
     public void turnDiscoverableOn(int seconds) {
         Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
@@ -271,26 +318,36 @@ public final class BluetoothManager implements BluetoothListener {
     } // end turnDiscoverableOn method
 
     /**
-     * Verifies if there are activated connections,
-     * If there are and it is a Server connection
-     * - Send status error message CONNECTED_AS_SERVER_CANNOT_BE_A_CLIENT
-     * If there are no connection activated, or the connection is a Client connection
      * Show popup with a list of devices with open service
-     * This functionality is possible only with ACCESS_FINE_LOCATION permission enabled
+     *
      * <p>
-     * The answer can be caught on onActivityResult method in Activity
+     *     If the Android Device version is greater than 6 {@link android.os.Build.VERSION_CODES#M},
+     *     this functionality is possible only with ACCESS_FINE_LOCATION permission enabled
+     * </p>
+     * <p>
+     *     The answer can be caught on onActivityResult method in Activity
+     * </p>
+     *
      * Possible resultCode:
-     * {@link Activity#RESULT_OK} when the search starts
-     * {@link BluetoothListener#CONNECTED_AS_SERVER_CANNOT_BE_A_CLIENT} when there is a server connection
-     * {@link BluetoothListener#PERMISSION_REQUIRED} when the permission is required
+     *
+     * <ul>
+     *     <li>{@link Activity#RESULT_OK} when the search starts</li>
+     *     <li>{@link BluetoothListener#PERMISSION_REQUIRED} when the permission is required</li>
+     * </ul>
+     *
      * <p>
      * If the ACCESS_FINE_LOCATION permission it was required, the answer can be caught on
      * {@link android.support.v7.app.AppCompatActivity#onRequestPermissionsResult(int, String[], int[])}
-     * requestCode = {@link BluetoothListener#PERMISSION_REQUIRED}
+     * </p>
+     *
+     * requestCode
+     *
+     * <ul>
+     *     <li>{@link BluetoothListener#PERMISSION_REQUIRED}</li>
+     * </ul>
      */
     public void searchForServices() {
-
-        // Verify is permission Manifest.permission.ACCESS_FINE_LOCATION is enabled
+        // Verify if permission Manifest.permission.ACCESS_FINE_LOCATION is enabled
         if (checkPermissions(PERMISSION_REQUIRED)) {
             Log.i(TAG, "Searching for discoverable services");
             onActivityResult(TURN_SEARCHING_ON, Activity.RESULT_OK, null);
@@ -304,7 +361,10 @@ public final class BluetoothManager implements BluetoothListener {
 
     /**
      * Show a popup with all current connections
-     * The selected connection will be closed
+     *
+     * <p>
+     *     The selected connection will be closed
+     * </p>
      */
     public void selectConnectionToClose() {
         if (getConnections().size() > 0) {
@@ -317,7 +377,7 @@ public final class BluetoothManager implements BluetoothListener {
     } // End selectConnectionToClose
 
     /**
-     * Send the message for all connected connections
+     * Send the message to all connected devices
      *
      * @param message Message to be send
      */
@@ -328,18 +388,34 @@ public final class BluetoothManager implements BluetoothListener {
         }
     } // end sendMessage method
 
+    /**
+     * Send the message to the specific conn
+     *
+     * @param message
+     * @param conn
+     */
     public void sendMessage(String message, ConnectedThread conn) {
         Log.i(TAG, "Sending message: " + message);
         conn.sendMessage(message);
     }
 
+    /**
+     * Send the message to connection specified by the connIndex
+     *
+     * @param message
+     * @param connIndex
+     */
     public void sendMessage(String message, int connIndex) {
         sendMessage(message, connectedThreads.get(connIndex));
     }
 
     /**
      * Main channel between BtConn and the client app.
-     * All classes send data through this method that sends them to client app
+     *
+     * <p>
+     *     All btconn classes send data through this method
+     *     before that data to be send to client app
+     * </p>
      *
      * @param data Data received
      */
@@ -352,7 +428,7 @@ public final class BluetoothManager implements BluetoothListener {
                     BluetoothDevice d = data.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                     selectItemDialog.update(new BluetoothItemAdapter(d));
                 }
-                break;
+                break; // end case DEVICE_FOUND
             case TURN_DISCOVERABLE_ON:
                 Log.i(TAG, "Service is open");
                 openService();
@@ -364,8 +440,8 @@ public final class BluetoothManager implements BluetoothListener {
                         conn.start();
                         connectedThreads.add(conn);
                     }
-                }
-                break;
+                } // End if (resultCode == Activity.RESULT_OK)
+                break; // End case DEVICE_CONNECTED
             case DEVICE_SELECTED:
                 if (getBluetoothAdapter().isDiscovering()) {
                     getBluetoothAdapter().cancelDiscovery();
@@ -379,7 +455,6 @@ public final class BluetoothManager implements BluetoothListener {
                 }
                 break; // end case DEVICE_SELECTED
             case CLOSE_CONNECTION:
-                // Finish the selected connection
                 if (resultCode == Activity.RESULT_OK) {
                     stopConnection(connectedThreads.indexOf(data.getSerializableExtra(BluetoothListener.EXTRA_CONNECTION)));
                     Log.i(TAG, "Closing connection");
@@ -403,17 +478,6 @@ public final class BluetoothManager implements BluetoothListener {
     /* ** Private methods ** */
 
     /**
-     * Return a list of current connections
-     *
-     * @return Connections list
-     */
-    public List<ConnectedThread> getConnections() {
-        stopUnutilizedConnections();
-        Log.i(TAG, "List of connections required");
-        return connectedThreads;
-    }
-
-    /**
      * Starts a new thread for connection as a Bluetooth server
      * and adds to connectedThreads list
      */
@@ -424,13 +488,11 @@ public final class BluetoothManager implements BluetoothListener {
     }
 
     /**
-     * If exists some connection, stops it
      * Starts a new thread for connection as a Bluetooth client and adds to connectedThreads list
      *
      * @param macAddress MAC address from Bluetooth server
      */
     private void connect(String macAddress) {
-//        stopAllConnections();
         ConnectionThread client = new ConnectionThread(uuid, this, macAddress);
         client.start();
         Log.i(TAG, "Client thread started");
@@ -450,7 +512,8 @@ public final class BluetoothManager implements BluetoothListener {
                 } catch (IOException e) {
                     Log.e(TAG, "Exception: ", new Throwable());
                     e.printStackTrace();
-                }
+                } // End try catch
+
                 connectedThreads.remove(index);
             } // end if connection != null
             Log.i(TAG, "Connection removed from list");
@@ -469,7 +532,7 @@ public final class BluetoothManager implements BluetoothListener {
     } // end stopAllConnections method
 
     /**
-     * Stops only connections that have no for where send messages
+     * Stops only connections that have no where to send messages
      */
     private void stopUnutilizedConnections() {
         for (int index = connectedThreads.size() - 1; index >= 0; index--) {
@@ -492,7 +555,7 @@ public final class BluetoothManager implements BluetoothListener {
                 ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, requestCode);
                 return false;
             }
-        }
+        } // End if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
         return true;
     } // end checkPermissions method
 
@@ -505,18 +568,4 @@ public final class BluetoothManager implements BluetoothListener {
     protected Object clone() {
         return bluetoothManager;
     }
-
-    /**
-     * Unregister the broadcasts
-     *
-     * @throws Throwable
-     */
-    @Override
-    protected void finalize() throws Throwable {
-        super.finalize();
-        bluetoothBroadcast.unregisterObserver(this);
-        activity.unregisterReceiver(bluetoothBroadcast);
-        Log.i(TAG, "BluetoothBroadcast removed from activity");
-    }
-
 } // End BluetoothManager class
