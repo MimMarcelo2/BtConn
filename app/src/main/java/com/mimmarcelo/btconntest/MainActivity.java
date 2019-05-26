@@ -119,8 +119,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     setStatus("Turn bluetooth on canceled by user");
                 } else if (resultCode == BluetoothListener.BLUETOOTH_ALREADY_ON) {
                     setStatus("Bluetooth already on");
-                } else {
-                    setStatus("Status not analyzed: " + data.getIntExtra(BluetoothListener.EXTRA_STATUS, 0));
                 }
                 break;
             case BluetoothListener.TURN_BLUETOOTH_OFF:
@@ -135,8 +133,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     setStatus("Waiting some connection...");
                 } else if (resultCode == RESULT_CANCELED) {
                     setStatus("Turn discoverable on canceled by user");
-                } else if (resultCode == CONNECTED_AS_CLIENT_CANNOT_BE_A_SERVER) {
-                    setStatus("There is a connection as a client, cannot be a server");
                 }
                 break;
             case BluetoothListener.TURN_DISCOVERABLE_OFF:
@@ -145,8 +141,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case BluetoothListener.TURN_SEARCHING_ON:
                 if (resultCode == RESULT_OK) {
                     setStatus("Searching for available services");
-                } else if (resultCode == CONNECTED_AS_SERVER_CANNOT_BE_A_CLIENT) {
-                    setStatus("There is a connection as a server, cannot be a client");
+                } else if (resultCode == RESULT_CANCELED) {
+                    setStatus("Bluetooth is off");
                 } else if (resultCode == PERMISSION_REQUIRED) {
                     setStatus("To search for services, it is necessary enable ACCESS_FINE_LOCATION permission");
                 }
@@ -188,10 +184,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case BluetoothListener.MESSAGE_RECEIVED:
                 if(data.hasExtra(BluetoothListener.EXTRA_MESSAGE)) {
                     setStatus(data.getStringExtra(BluetoothListener.EXTRA_MESSAGE));
-//                    if(data.hasExtra(BluetoothListener.EXTRA_CONNECTION)){
-//                        ConnectedThread conn = (ConnectedThread) data.getSerializableExtra(BluetoothListener.EXTRA_CONNECTION);
-//                        conn.sendMessage("Message delivered!");
-//                    }
                 }
                 break;
         } // end switch requestCode
@@ -221,7 +213,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 } else {
                     //if enabled, it is possible keep with the process
                     setStatus("Permission enabled");
-                    bluetoothManager.searchForServices();
                 }
                 break; // end ASK_PERMISSION case
 
@@ -247,6 +238,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         bluetoothManager = new BluetoothBuilder(this)
                 .setUuid("eca150a0-10c2-4082-a1f4-f36e20f9cbd2")
                 .build();
+
+        if(!bluetoothManager.permissionsEnabled())
+            bluetoothManager.askPermissions();
 
         txtStatus = findViewById(R.id.txtStatus);
         edtMessage = findViewById(R.id.edtMessage);

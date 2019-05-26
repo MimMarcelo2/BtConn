@@ -39,9 +39,9 @@ public final class BluetoothManager implements BluetoothListener {
      * calls. It works as an observer when Bluetooth behaviour changes.
      *
      * <p>
-     *     It is defined in {@link BluetoothBuilder#BluetoothBuilder(Activity, UUID)}
-     *     or in {@link BluetoothBuilder#BluetoothBuilder(Activity)}
-     *     or in {@link #setActivity(Activity)} method
+     * It is defined in {@link BluetoothBuilder#BluetoothBuilder(Activity, UUID)}
+     * or in {@link BluetoothBuilder#BluetoothBuilder(Activity)}
+     * or in {@link #setActivity(Activity)} method
      * </p>
      *
      * @see BluetoothListener#onActivityResult(int, int, Intent)
@@ -55,11 +55,11 @@ public final class BluetoothManager implements BluetoothListener {
      * The Universally Unique Identifier for the application.
      *
      * <p>
-     *     It is a number that identifies uniquely the application on the network,
-     *     this way, only applications with the same {@link UUID} can
-     *     establishes Bluetooth connection
+     * It is a number that identifies uniquely the application on the network,
+     * this way, only applications with the same {@link UUID} can
+     * establishes Bluetooth connection
      * </p>
-     *
+     * <p>
      * It is defined in {@link BluetoothBuilder#BluetoothBuilder(Activity, UUID)}
      * or in {@link BluetoothBuilder#setUuid(UUID)}
      * or in {@link BluetoothBuilder#setUuid(String)}
@@ -79,8 +79,9 @@ public final class BluetoothManager implements BluetoothListener {
      * Need to be registered in active Activity (Context)
      *
      * <p>
-     *     It is managed in {@link #setActivity(Activity)}
+     * It is managed in {@link #setActivity(Activity)}
      * </p>
+     *
      * @see #setActivity(Activity)
      */
     private BluetoothBroadcast bluetoothBroadcast;
@@ -89,7 +90,7 @@ public final class BluetoothManager implements BluetoothListener {
      * Define what events the {@link #bluetoothBroadcast} may listen to
      *
      * <p>
-     *     It is set in {@link #BluetoothManager()}
+     * It is set in {@link #BluetoothManager()}
      * </p>
      */
     private IntentFilter filter;
@@ -110,10 +111,10 @@ public final class BluetoothManager implements BluetoothListener {
      * Singleton pattern
      *
      * <p>
-     *     Create a {@link BluetoothManager} instance, but it is accessible
-     *     only inner btconn library.
+     * Create a {@link BluetoothManager} instance, but it is accessible
+     * only inner btconn library.
      * </p>
-     *
+     * <p>
      * It is called, <em>if not exists,</em> in {@link #getInstance()}
      *
      * @see #getInstance()
@@ -134,15 +135,15 @@ public final class BluetoothManager implements BluetoothListener {
         Log.i(TAG, "New BluetoothManager created");
     } // end constructor BluetoothManager
 
-    /* ** Public static methods ** */
+    /* ** Protected static methods ** */
 
     /**
      * Singleton pattern
      *
      * <p>
-     *     (Create and) return a {@link BluetoothManager} instance
+     * (Create and) return a {@link BluetoothManager} instance
      * </p>
-     *
+     * <p>
      * It is called in {@link BluetoothBuilder#build()}
      *
      * @return The {@link BluetoothManager} instance
@@ -153,17 +154,6 @@ public final class BluetoothManager implements BluetoothListener {
         }
         Log.i(TAG, "BluetoothManager required");
         return bluetoothManager;
-    }
-
-    /**
-     * Stop all process involving btconn library
-     */
-    public void destroy(){
-        bluetoothBroadcast.unregisterObserver(this);
-        activity.unregisterReceiver(bluetoothBroadcast);
-        stopAllConnections();
-        bluetoothManager = null;
-        Log.i(TAG, "BluetoothManager removed from activity");
     }
 
     /* ** Public methods ** */
@@ -243,18 +233,64 @@ public final class BluetoothManager implements BluetoothListener {
     }
 
     /**
+     * Stop all process involving btconn library
+     */
+    public void destroy() {
+        bluetoothBroadcast.unregisterObserver(this);
+        activity.unregisterReceiver(bluetoothBroadcast);
+        stopAllConnections();
+        bluetoothManager = null;
+        Log.i(TAG, "BluetoothManager removed from activity");
+    }
+
+    /**
+     * <p>
+     *     If the device version is greater than 6 {@link Build.VERSION_CODES#M},
+     * show a popup asking by the {@link Manifest.permission#ACCESS_FINE_LOCATION} permission
+     * </p>
+     * <p>
+     * This method answer can be caught on
+     * {@link android.support.v7.app.AppCompatActivity#onRequestPermissionsResult(int, String[], int[])}
+     * </p>
+     * <p>
+     * Identified by requestCode: {@link BluetoothListener#PERMISSION_REQUIRED}
+     * </p>
+     */
+    public void askPermissions() {
+        Log.i(TAG, "Asking required permission");
+        ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUIRED);
+    }
+
+    /**
+     * Test if {@link Manifest.permission#ACCESS_FINE_LOCATION} permission is enabled
+     *
+     * @return true if the permission is enabled
+     */
+    public boolean permissionsEnabled() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+        }
+        return true;
+    } // end permissionsEnabled method
+
+    /**
      * Show popup asking permission to enable Bluetooth
      *
      * <p>
-     *     The answer can be caught on {@link BluetoothListener#onActivityResult(int, int, Intent)}
+     * The answer can be caught on {@link BluetoothListener#onActivityResult(int, int, Intent)}
      * </p>
-     *
+     * <p>
+     * Identified by requestCode: {@link BluetoothListener#TURN_BLUETOOTH_ON}
+     * </p>
+     * <p>
      * Possible resultCode:
      *
      * <ul>
-     *     <li>{@link Activity#RESULT_OK} when the bluetooth is turned on successfully</li>
-     *     <li>{@link Activity#RESULT_CANCELED} when the user cancels the operation</li>
-     *     <li>{@link BluetoothListener#BLUETOOTH_ALREADY_ON} when the Bluetooth is already on</li>
+     * <li>{@link Activity#RESULT_OK} when the bluetooth is turned on successfully</li>
+     * <li>{@link Activity#RESULT_CANCELED} when the user cancels the operation</li>
+     * <li>{@link BluetoothListener#BLUETOOTH_ALREADY_ON} when the Bluetooth is already on</li>
      * </ul>
      */
     public void turnBluetoothOn() {
@@ -272,14 +308,17 @@ public final class BluetoothManager implements BluetoothListener {
      * Turn Bluetooth off
      *
      * <p>
-     *     The answer can be caught on {@link BluetoothListener#onActivityResult(int, int, Intent)}
+     * The answer can be caught on {@link BluetoothListener#onActivityResult(int, int, Intent)}
      * </p>
-     *
+     * <p>
+     * Identified by requestCode: {@link BluetoothListener#TURN_BLUETOOTH_OFF}
+     * </p>
+     * <p>
      * Possible resultCode:
      *
      * <ul>
-     *     <li>{@link Activity#RESULT_OK} when the bluetooth is turned off</li>
-     *     <li>{@link BluetoothListener#BLUETOOTH_ALREADY_OFF} when the Bluetooth is already off</li>
+     * <li>{@link Activity#RESULT_OK} when the bluetooth is turned off</li>
+     * <li>{@link BluetoothListener#BLUETOOTH_ALREADY_OFF} when the Bluetooth is already off</li>
      * </ul>
      */
     public void turnBluetoothOff() {
@@ -297,14 +336,17 @@ public final class BluetoothManager implements BluetoothListener {
      * Show popup asking permission to enable discovering
      *
      * <p>
-     *     The answer can be caught on {@link BluetoothListener#onActivityResult(int, int, Intent)}
+     * The answer can be caught on {@link BluetoothListener#onActivityResult(int, int, Intent)}
      * </p>
-     *
+     * <p>
+     * Identified by requestCode: {@link BluetoothListener#TURN_DISCOVERABLE_ON}
+     * </p>
+     * <p>
      * Possible resultCode:
      *
      * <ul>
-     *     <li>{@link Activity#RESULT_OK} when the bluetooth is turned off</li>
-     *     <li>{@link Activity#RESULT_CANCELED} when the user cancels the operation</li>
+     * <li>{@link Activity#RESULT_OK} when the bluetooth is turned off</li>
+     * <li>{@link Activity#RESULT_CANCELED} when the user cancels the operation</li>
      * </ul>
      *
      * @param seconds Time <em>,in seconds,</em> for discovering
@@ -321,40 +363,38 @@ public final class BluetoothManager implements BluetoothListener {
      * Show popup with a list of devices with open service
      *
      * <p>
-     *     If the Android Device version is greater than 6 {@link android.os.Build.VERSION_CODES#M},
-     *     this functionality is possible only with ACCESS_FINE_LOCATION permission enabled
+     * If the Android Device version is greater than 6 {@link android.os.Build.VERSION_CODES#M},
+     * this functionality is possible only with ACCESS_FINE_LOCATION permission enabled
      * </p>
      * <p>
-     *     The answer can be caught on onActivityResult method in Activity
+     * The answer can be caught on onActivityResult method in Activity
      * </p>
-     *
+     * <p>
+     * Identified by requestCode: {@link BluetoothListener#TURN_SEARCHING_ON}
+     * </p>
+     * <p>
      * Possible resultCode:
-     *
-     * <ul>
-     *     <li>{@link Activity#RESULT_OK} when the search starts</li>
-     *     <li>{@link BluetoothListener#PERMISSION_REQUIRED} when the permission is required</li>
-     * </ul>
-     *
-     * <p>
-     * If the ACCESS_FINE_LOCATION permission it was required, the answer can be caught on
-     * {@link android.support.v7.app.AppCompatActivity#onRequestPermissionsResult(int, String[], int[])}
      * </p>
-     *
-     * requestCode
-     *
      * <ul>
-     *     <li>{@link BluetoothListener#PERMISSION_REQUIRED}</li>
+     * <li>{@link Activity#RESULT_OK} when the search starts</li>
+     * <li>{@link Activity#RESULT_CANCELED} when the Bluetooth is off</li>
+     * <li>{@link BluetoothListener#PERMISSION_REQUIRED} when the permission is required</li>
      * </ul>
      */
     public void searchForServices() {
         // Verify if permission Manifest.permission.ACCESS_FINE_LOCATION is enabled
-        if (checkPermissions(PERMISSION_REQUIRED)) {
-            Log.i(TAG, "Searching for discoverable services");
-            onActivityResult(TURN_SEARCHING_ON, Activity.RESULT_OK, null);
-            selectItemDialog = new SelectItemDialog(activity, this, DEVICE_SELECTED);
-            getBluetoothAdapter().startDiscovery();
+        if (permissionsEnabled()) {
+            if (getBluetoothAdapter().isEnabled()) {
+                Log.i(TAG, "Searching for discoverable services");
+                onActivityResult(TURN_SEARCHING_ON, Activity.RESULT_OK, null);
+                selectItemDialog = new SelectItemDialog(activity, this, DEVICE_SELECTED);
+                getBluetoothAdapter().startDiscovery();
+            } else {
+                Log.i(TAG, "Bluetooth is not enabled");
+                onActivityResult(TURN_SEARCHING_ON, Activity.RESULT_CANCELED, null);
+            }
         } else {
-            Log.i(TAG, "Asking for required permission");
+            Log.i(TAG, "Permission Manifest.permission.ACCESS_FINE_LOCATION not enabled");
             onActivityResult(TURN_SEARCHING_ON, PERMISSION_REQUIRED, null);
         }
     } // end turnDiscoverableOn method
@@ -363,7 +403,7 @@ public final class BluetoothManager implements BluetoothListener {
      * Show a popup with all current connections
      *
      * <p>
-     *     The selected connection will be closed
+     * The selected connection will be closed
      * </p>
      */
     public void selectConnectionToClose() {
@@ -413,8 +453,8 @@ public final class BluetoothManager implements BluetoothListener {
      * Main channel between BtConn and the client app.
      *
      * <p>
-     *     All btconn classes send data through this method
-     *     before that data to be send to client app
+     * All btconn classes send data through this method
+     * before that data to be send to client app
      * </p>
      *
      * @param data Data received
@@ -474,6 +514,18 @@ public final class BluetoothManager implements BluetoothListener {
             }
         });
     } // end onActivityResult method
+
+    /* ** Protected methods ** */
+
+    /**
+     * Singleton pattern
+     *
+     * @return This BluetoothManager instance;
+     */
+    @Override
+    protected Object clone() {
+        return bluetoothManager;
+    }
 
     /* ** Private methods ** */
 
@@ -541,31 +593,4 @@ public final class BluetoothManager implements BluetoothListener {
             }
         }
     } // end stopUnutilizedConnections method
-
-    /**
-     * Asks for ACCESS_FINE_LOCATION permission that is necessary to connect as a Bluetooth client
-     *
-     * @param requestCode Number to identify the answer in sendError method
-     * @return true if the permission is enabled
-     */
-    private boolean checkPermissions(int requestCode) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                Log.i(TAG, "Asking required permission");
-                ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, requestCode);
-                return false;
-            }
-        } // End if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-        return true;
-    } // end checkPermissions method
-
-    /**
-     * Singleton pattern
-     *
-     * @return This BluetoothManager instance;
-     */
-    @Override
-    protected Object clone() {
-        return bluetoothManager;
-    }
 } // End BluetoothManager class

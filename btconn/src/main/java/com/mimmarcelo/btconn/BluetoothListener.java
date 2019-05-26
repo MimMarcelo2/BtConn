@@ -33,8 +33,6 @@ public interface BluetoothListener {
 
     int BLUETOOTH_ALREADY_ON = 50;
     int BLUETOOTH_ALREADY_OFF = 51;
-    int CONNECTED_AS_CLIENT_CANNOT_BE_A_SERVER = 52;
-    int CONNECTED_AS_SERVER_CANNOT_BE_A_CLIENT = 53;
     int PERMISSION_REQUIRED = 54;
     int NO_CONNECTIONS = 55;
 
