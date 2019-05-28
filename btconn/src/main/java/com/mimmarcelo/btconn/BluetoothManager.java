@@ -7,8 +7,10 @@ package com.mimmarcelo.btconn;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
@@ -416,6 +418,31 @@ public final class BluetoothManager implements BluetoothListener {
         }
     } // End selectConnectionToClose
 
+    public void closeAllConnections(Activity activity){
+        if(connectedThreads.size() > 0) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(activity)
+                    .setTitle("Confirm")
+                    .setMessage("Are you sure to close all connections?")
+                    .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            BluetoothManager.getInstance().onActivityResult(ASK_CLOSE_CONNECTION, Activity.RESULT_CANCELED, null);
+                        }
+                    })
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            BluetoothManager.getInstance().onActivityResult(ASK_CLOSE_CONNECTION, Activity.RESULT_OK, null);
+                        }
+                    });
+            AlertDialog alert = builder.create();
+            alert.show();
+        }
+        else{
+            onActivityResult(ASK_CLOSE_CONNECTION, NO_CONNECTIONS, null);
+        }
+    }
+
     /**
      * Send the message to all connected devices
      *
@@ -494,6 +521,11 @@ public final class BluetoothManager implements BluetoothListener {
                     Log.i(TAG, "None device selected");
                 }
                 break; // end case DEVICE_SELECTED
+            case ASK_CLOSE_CONNECTION:
+                if(resultCode == Activity.RESULT_OK){
+                    stopAllConnections();
+                }
+                break;
             case CLOSE_CONNECTION:
                 if (resultCode == Activity.RESULT_OK) {
                     stopConnection(connectedThreads.indexOf(data.getSerializableExtra(BluetoothListener.EXTRA_CONNECTION)));

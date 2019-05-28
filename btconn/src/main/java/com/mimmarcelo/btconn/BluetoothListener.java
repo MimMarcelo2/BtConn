@@ -30,6 +30,7 @@ public interface BluetoothListener {
     int DEVICE_DISCONNECTED = 9;
     int CLOSE_CONNECTION = 10;
     int MESSAGE_RECEIVED = 11;
+    int ASK_CLOSE_CONNECTION = 12;
 
     int BLUETOOTH_ALREADY_ON = 50;
     int BLUETOOTH_ALREADY_OFF = 51;

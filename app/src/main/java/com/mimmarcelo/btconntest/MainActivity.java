@@ -75,6 +75,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.btnCloseConnection:
                 bluetoothManager.selectConnectionToClose();
                 break;
+            case R.id.btnCloseAllConnections:
+                setStatus("Asking to close all connections");
+                bluetoothManager.closeAllConnections(this);
+                break;
             case R.id.btnSendMessage:
                 String msg = edtMessage.getText().toString();
                 if(!msg.isEmpty()) {
@@ -178,7 +182,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     setStatus("Close connection canceled by user");
                 }
                 else if(resultCode == BluetoothListener.NO_CONNECTIONS){
-                    setStatus("No connections activated");
+                    setStatus("No activated connections to close");
+                }
+                break;
+            case ASK_CLOSE_CONNECTION:
+                if(resultCode == RESULT_OK){
+                    setStatus("Closing connections");
+                }
+                else if (resultCode == NO_CONNECTIONS){
+                    setStatus("No activated connections to close");
+                }
+                else if (resultCode == RESULT_CANCELED){
+                    setStatus("Operation canceled by user");
                 }
                 break;
             case BluetoothListener.MESSAGE_RECEIVED:
@@ -265,6 +280,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btn.setOnClickListener(this);
 
         btn = findViewById(R.id.btnCloseConnection);
+        btn.setOnClickListener(this);
+
+        btn = findViewById(R.id.btnCloseAllConnections);
         btn.setOnClickListener(this);
 
         btn = findViewById(R.id.btnSendMessage);
