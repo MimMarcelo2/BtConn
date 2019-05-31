@@ -420,23 +420,7 @@ public final class BluetoothManager implements BluetoothListener {
 
     public void closeAllConnections(Activity activity){
         if(connectedThreads.size() > 0) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(activity)
-                    .setTitle("Confirm")
-                    .setMessage("Are you sure to close all connections?")
-                    .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            BluetoothManager.getInstance().onActivityResult(ASK_CLOSE_CONNECTION, Activity.RESULT_CANCELED, null);
-                        }
-                    })
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            BluetoothManager.getInstance().onActivityResult(ASK_CLOSE_CONNECTION, Activity.RESULT_OK, null);
-                        }
-                    });
-            AlertDialog alert = builder.create();
-            alert.show();
+            new MessageDialog(activity, this, "Confirm", "Are you sure to close all connections?", ASK_CLOSE_CONNECTION);
         }
         else{
             onActivityResult(ASK_CLOSE_CONNECTION, NO_CONNECTIONS, null);
